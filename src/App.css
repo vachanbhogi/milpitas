@@ -2109,6 +2109,24 @@ button:focus-visible {
   background: var(--green);
 }
 
+.path-dot.is-current-target {
+  animation: pulseRing 1.5s infinite;
+  border-color: var(--orange);
+  background: var(--yellow) !important;
+}
+
+@keyframes pulseRing {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 155, 69, 0.8);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(255, 155, 69, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 155, 69, 0);
+  }
+}
+
 .start-planet-btn {
   min-height: 38px !important;
   font-size: 0.9rem !important;

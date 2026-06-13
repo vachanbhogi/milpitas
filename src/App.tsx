@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useMicrophone } from './hooks/useMicrophone';
 import { useLiveVoiceAnalyzer } from './hooks/useLiveVoiceAnalyzer';
-import { playSynthesizedPhonics, encodeFloat32ArrayToWav } from './audioUtils';
+import { playSynthesizedPhonics, encodeFloat32ArrayToWav, speakText } from './audioUtils';
 import { COURSE_MODULES } from './course/courseModules';
 import { getSoundLabel, scorePhonemeAttempt, scoreWordAttempt } from './utils/phonicsScoring';
 import './App.css';
@@ -156,6 +156,12 @@ function App() {
     };
     checkServer();
   }, [activeLessonId]);
+
+  useEffect(() => {
+    if (feedbackText) {
+      speakText(feedbackText);
+    }
+  }, [feedbackText]);
 
   const triggerExplosion = () => {
     const emojis = ['✨', '⭐️', '🎉', '🪐', '💫', '🎨', '🚀', '🥳', '🎈', '⚡️', '🦄', '🛸'];

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { MascotScene } from '../components/MascotScene';
 import { PictureBadge } from '../components/PictureBadge';
-import { playSynthesizedPhonics } from '../audioUtils';
+import { playSynthesizedPhonics, speakText } from '../audioUtils';
 import { COURSE_MODULES as REAL_COURSE_MODULES } from '../course/courseModules';
 import Tesseract from 'tesseract.js';
 import {
@@ -117,6 +117,10 @@ function CourseMap({
 
   const hasUnlockedHome = completedCount >= totalLessons;
 
+  // Find next required lesson to pulse it on the map
+  const allLessons = REAL_COURSE_MODULES.flatMap(m => m.lessons);
+  const nextRequiredLesson = allLessons.find(lesson => !completedLessons.has(lesson.id)) || null;
+
   return (
     <motion.main className="course-layout" initial="hidden" animate="visible" variants={stagger}>
       <motion.section className="hero-panel" variants={fadeUp}>
@@ -130,11 +134,11 @@ function CourseMap({
           <motion.div className="hero-actions" variants={fadeUpFast}>
             <motion.button className="primary-action" type="button" onClick={() => onOpenModule('phonics')}
               whileHover={{ scale: 1.05, boxShadow: '7px 7px 0 #172033' }} whileTap={{ scale: 0.96 }} transition={springTap}>
-              Start Orbit
+              🚀 Start Orbit
             </motion.button>
             <motion.button className="secondary-action" type="button" onClick={onOpenRewards}
               whileHover={{ scale: 1.05, boxShadow: '7px 7px 0 #172033' }} whileTap={{ scale: 0.96 }} transition={springTap}>
-              Rewards Path
+              🏆 Rewards Path
             </motion.button>
           </motion.div>
         </motion.div>
@@ -146,13 +150,27 @@ function CourseMap({
 
       <motion.section className="status-strip" variants={fadeUp} aria-label="course status">
         {[
-          { label: 'Ship repair', value: `${shipProgress}%` },
-          { label: 'Missions', value: `${completedCount}/${totalLessons}` },
+          { 
+            label: 'Ship repair', 
+            value: `${shipProgress}%`,
+            progressPercent: shipProgress,
+            color: 'var(--orange)'
+          },
+          { 
+            label: 'Missions', 
+            value: `${completedCount}/${totalLessons}`,
+            progressPercent: totalLessons > 0 ? (completedCount / totalLessons) * 100 : 0,
+            color: 'var(--green)'
+          },
         ].map((item) => (
           <motion.div key={item.label} variants={fadeUpFast}
-            whileHover={{ y: -2, transition: { type: 'spring', stiffness: 200, damping: 12 } }}>
+            whileHover={{ y: -2, transition: { type: 'spring', stiffness: 200, damping: 12 } }}
+            style={{ display: 'grid', gap: '4px' }}>
             <span>{item.label}</span>
             <strong>{item.value}</strong>
+            <div className="status-track" style={{ height: '8px', background: 'rgba(23, 32, 51, 0.12)', borderRadius: '4px', marginTop: '4px', overflow: 'hidden' }}>
+              <div className="status-fill" style={{ width: `${item.progressPercent}%`, height: '100%', background: item.color, borderRadius: '4px' }} />
+            </div>
           </motion.div>
         ))}
       </motion.section>
@@ -171,7 +189,7 @@ function CourseMap({
             </div>
             <motion.button className="secondary-action" type="button" onClick={onRestart}
               whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.96 }} transition={springTap}>
-              Play Again
+              🔄 Play Again
             </motion.button>
           </motion.section>
         )}
@@ -242,7 +260,7 @@ function CourseMap({
                           {module.lessons.map(lesson => (
                             <motion.button
                               key={lesson.id}
-                              className={`path-dot ${completedLessons.has(lesson.id) ? 'is-complete' : ''}`}
+                              className={`path-dot ${completedLessons.has(lesson.id) ? 'is-complete' : ''} ${nextRequiredLesson?.id === lesson.id ? 'is-current-target' : ''}`}
                               type="button"
                               onClick={() => onOpenLesson(lesson)}
                               title={`Start lesson: ${lesson.title}`}
@@ -259,7 +277,7 @@ function CourseMap({
                   {!isLocked && !isHomePlanet && (
                     <motion.button className="primary-action start-planet-btn" type="button" onClick={() => onOpenModule(module.id)}
                       whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} transition={springTap}>
-                      Land!
+                      🚀 Land!
                     </motion.button>
                   )}
                   {isHomePlanet && !isLocked && (
@@ -379,11 +397,14 @@ function LessonScreen({
           <motion.div className="lesson-header" variants={fadeUpFast}>
             <motion.button className="back-button" type="button" onClick={onBack}
               whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.96 }} transition={springTap}>
-              Map
+              🗺️ Map
             </motion.button>
-            <div>
+            <div style={{ display: 'grid', justifyItems: 'end', gap: '4px' }}>
               <span>{activeModule.planet}</span>
               <strong>{currentModuleProgress}/{activeModule.lessons.length} complete</strong>
+              <div style={{ width: '80px', height: '6px', background: 'rgba(23, 32, 51, 0.15)', borderRadius: '3px', overflow: 'hidden' }}>
+                <div style={{ width: `${(currentModuleProgress / activeModule.lessons.length) * 100}%`, height: '100%', background: 'var(--line)' }} />
+              </div>
             </div>
           </motion.div>
 
@@ -399,7 +420,31 @@ function LessonScreen({
             <motion.div variants={stagger}>
               <motion.p className="eyebrow" variants={fadeUpFast}>Mission {activeLessonIndex + 1}</motion.p>
               <motion.h1 variants={fadeUpFast}>{lesson.title}</motion.h1>
-              <motion.p variants={fadeUpFast}>{lesson.storyPrompt}</motion.p>
+              <motion.p variants={fadeUpFast} style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <span>{lesson.storyPrompt}</span>
+                <button
+                  type="button"
+                  className="speak-replay-btn"
+                  onClick={() => speakText(lesson.storyPrompt)}
+                  title="Listen again"
+                  style={{
+                    background: 'rgba(23, 32, 51, 0.06)',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontSize: '0.88rem',
+                    padding: '4px 10px',
+                    borderRadius: '999px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '4px',
+                    fontWeight: 'bold',
+                    color: 'var(--ink)'
+                  }}
+                >
+                  🔊 Hear Story
+                </button>
+              </motion.p>
             </motion.div>
           </motion.div>
 
@@ -473,7 +518,7 @@ function LessonScreen({
                 </div>
                 <motion.button className="primary-action" type="button" onClick={onNext}
                   whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.96 }} transition={springTap}>
-                  Next Mission
+                  🚀 Next Mission
                 </motion.button>
               </motion.div>
             )}
@@ -665,7 +710,7 @@ function PhonicsMission({
             <motion.button key="start" className="primary-action" type="button" disabled={!isSupported} onClick={onStartRecording}
               initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
               whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.96 }} transition={springTap}>
-              Start Speaking
+              🎙️ Start Speaking
             </motion.button>
           )}
           {status === 'recording' && (
@@ -677,13 +722,13 @@ function PhonicsMission({
                 opacity: { duration: 0.3 },
                 scale: { duration: 0.8, repeat: Infinity, ease: 'easeInOut' }
               }}>
-              Check My Sound
+              🛑 Check My Sound
             </motion.button>
           )}
           {status === 'checking' && (
             <motion.button key="checking" className="primary-action" type="button" disabled
               initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
-              Checking
+              ⏳ Checking...
             </motion.button>
           )}
         </AnimatePresence>
@@ -804,7 +849,7 @@ function SentenceMission({ lesson, status, feedbackText, selectedTiles, onTile, 
             <motion.button className="secondary-action clear-action" type="button" onClick={onClear}
               initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
               whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.96 }} transition={springTap}>
-              Clear
+              🧹 Clear
             </motion.button>
           )}
         </AnimatePresence>
@@ -1049,7 +1094,7 @@ function WritingMission({ lesson, status, onComplete }: WritingMissionProps) {
                 onClick={clearCanvas}
                 disabled={isChecking}
                 whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.96 }} transition={springTap}>
-                Clear Canvas
+                🧹 Clear Canvas
               </motion.button>
               <motion.button
                 className="primary-action"
@@ -1057,7 +1102,7 @@ function WritingMission({ lesson, status, onComplete }: WritingMissionProps) {
                 disabled={!hasInk || isChecking}
                 onClick={handleCheck}
                 whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.96 }} transition={springTap}>
-                {isChecking ? 'Scanning...' : 'Check My Writing!'}
+                {isChecking ? '⏳ Scanning...' : '✅ Check My Writing!'}
               </motion.button>
             </motion.div>
           )}

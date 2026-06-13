@@ -78,7 +78,7 @@ export function Home({ isServerConnected, onOpenApp }: HomeProps) {
               whileTap={{ scale: 0.96, boxShadow: '2px 2px 0 #172033' }}
               transition={springTap}
             >
-              Launch Sound Safari Demo
+              🚀 Launch Sound Safari Demo
             </motion.button>
           </motion.div>
         </motion.div>

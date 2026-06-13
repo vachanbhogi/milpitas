@@ -335,3 +335,16 @@ export function encodeFloat32ArrayToWav(samples: Float32Array, sampleRate = 1600
   
   return buffer;
 }
+
+/**
+ * Uses SpeechSynthesis to read text instructions aloud for pre-literate children.
+ */
+export function speakText(text: string): void {
+  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+    const clean = text.replace(/🔊|✏️|🔓|🔒|✨|⭐️|🎉|🪐|💫|🎨|🚀|🛸|🏆|🏅|👑|🔔/g, ''); // strip emojis
+    const utterance = new SpeechSynthesisUtterance(clean);
+    utterance.rate = 0.85; // slightly slower speed for clarity
+    window.speechSynthesis.speak(utterance);
+  }
+}

@@ -1,34 +1,25 @@
-# Local Real-Time Phonics Prototype
+# Earthlingo
 
-This is a Vite + React + TypeScript MVP for testing a kid-facing phonics loop:
+Earthlingo is a Vite + React + TypeScript hackathon app for **Milpitas Hacks 2 Track 1: Interactive Learning**.
 
-1. Show one sound or simple word.
-2. Listen through the browser microphone.
-3. Give immediate live feedback from lightweight audio analysis.
-4. Send the completed utterance to a local `whisper.cpp` server for transcript scoring.
+The story is simple: Zibi, a young alien, crash-lands on Earth and needs help learning Earth sounds, letters, and tiny sentences. Kids complete bright course missions, earn star seeds, and repair Zibi's ship.
 
-The app is intentionally not browser-only AI yet. The MVP keeps Whisper as a local sidecar so the first prototype can focus on the teaching loop instead of model loading, WebGPU support, and browser memory limits.
+## What The App Includes
 
-## Demo Mode
-
-Demo mode is currently enabled in the app so the prototype can be shown without `whisper.cpp`.
-
-- Use **Demo wrong** to show an incorrect pronunciation.
-- Use **Demo right** to show a correct pronunciation.
-- The microphone button can still be used for the live listening feel, but final scoring is faked for the demo.
+- **Course map:** app-first experience with phonics, letters, grammar, rewards, and pitch sections.
+- **Phonics missions:** microphone recording, live sound-shape feedback, and local `whisper.cpp` transcript scoring for word checks.
+- **Letter missions:** frontend games for matching sounds to letters.
+- **Grammar missions:** frontend games for nouns, actions, and simple sentence building.
+- **Rewards:** star seeds, ship repair progress, and course completion feedback.
+- **Pitch page:** judge-facing summary based on the hackathon pitch deck.
 
 ## What Runs Where
 
-- **Frontend:** React app, microphone capture, live sound-shape feedback, lesson flow.
-- **Local backend:** `whisper.cpp` server at `http://127.0.0.1:8080/inference`.
-- **Future packaging:** Tauri or Electron can bundle the frontend with `whisper.cpp` as a desktop sidecar after the loop is validated.
+- **Frontend:** React app, lesson state, course map, rewards, letter and grammar games.
+- **Browser audio:** Web Audio API and AudioWorklet for microphone capture and live feedback.
+- **Local backend:** `whisper.cpp` server at `http://127.0.0.1:8080/inference` for speech transcription.
 
-## Current Lessons
-
-- Sounds: `s`, `m`, `a`, `t`, `p`
-- Words: `sat`, `mat`, `pat`
-
-The live analyzer is not a clinical phoneme recognizer. It only labels simple sound shapes such as quiet, voice, hissy, open, and pop. Whisper scoring happens after the child stops speaking.
+The app no longer uses presenter-only correctness controls. Speech missions use real microphone input. Sound-only missions can still use the live audio analyzer when Whisper is offline, but word missions need the local Whisper server.
 
 ## Development
 
@@ -72,4 +63,22 @@ Run the local server:
 bun run whisper:server
 ```
 
-The frontend still shows live microphone feedback when the backend is offline. In demo mode, final correctness can be faked with the presenter controls. Turn demo mode off in `src/App.tsx` when you are ready to require the local Whisper server.
+Then open the app and visit **Sound Safari**. The pitch page shows whether the Whisper lab is online or offline.
+
+## Judging Flow
+
+1. Open the app and start on the course map.
+2. Complete one **Sound Safari** mission with the microphone.
+3. Complete one **Letter Lagoon** mission.
+4. Complete one **Tiny Talk Town** mission.
+5. Open **Rewards** to show ship progress.
+6. Open **Pitch** to explain the problem, solution, tech stack, and design system.
+
+## Hackathon Rubric Fit
+
+- **Innovation:** kids teach an alien Earth language through sound and visuals.
+- **Technical execution:** React, TypeScript, Web Audio, AudioWorklet, and Whisper integration.
+- **Functionality:** judges can freely explore a course map, lessons, rewards, and pitch page.
+- **Design:** bright original cartoon UI with large controls for young learners.
+- **Impact:** early literacy practice without requiring reading-heavy instructions.
+- **Theme relevance:** focused on interactive childhood learning through sound, visuals, and rewards.

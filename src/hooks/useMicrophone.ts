@@ -25,7 +25,7 @@ export function useMicrophone() {
     onChunkRef.current = cb
   }, [])
 
-  const startRecording = useCallback(async () => {
+  const startRecording = useCallback(async (): Promise<boolean> => {
     try {
       setState(prev => ({ ...prev, error: null }))
 
@@ -54,9 +54,11 @@ export function useMicrophone() {
 
       source.connect(workletNode)
       setState(prev => ({ ...prev, isListening: true }))
+      return true
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Microphone error'
       setState(prev => ({ ...prev, error: message, isListening: false }))
+      return false
     }
   }, [])
 

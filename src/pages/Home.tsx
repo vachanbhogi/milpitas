@@ -85,7 +85,7 @@ export function Home({ isServerConnected, onOpenApp }: HomeProps) {
               whileTap={{ scale: 0.96, boxShadow: '4px 4px 0 #172033' }}
               transition={springTap}
             >
-              👉 START!
+              START!
             </motion.button>
             <button
               type="button"
@@ -105,7 +105,7 @@ export function Home({ isServerConnected, onOpenApp }: HomeProps) {
                 fontSize: '1.2rem'
               }}
             >
-              🔊 Hear instructions: "Just press start!"
+              Hear instructions: "Just press start!"
             </button>
           </motion.div>
         </motion.div>

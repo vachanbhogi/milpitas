@@ -14,7 +14,8 @@ import {
   type ChoiceLesson,
   type SentenceLesson,
   type WritingLesson,
-  type VoiceSnapshot
+  type VoiceSnapshot,
+  type PictureArt
 } from '../types';
 
 const springTap = { type: 'spring' as const, stiffness: 500, damping: 20 };
@@ -48,7 +49,7 @@ type PathNode = CourseModule | HomePlanetNode;
 
 const HOME_PLANET_NODE: HomePlanetNode = {
   id: 'home-planet',
-  title: 'Mumble Home 🪐',
+  title: 'Mumble Home',
   planet: 'Mumble Home Planet',
   colorClass: 'violet',
   mission: 'Welcome home, Zibi! Planet reached.',
@@ -153,7 +154,7 @@ function CourseMap({
                   transition={springTap}
                   style={{ width: 'fit-content' }}
                 >
-                  👉 PLAY NEXT!
+                  PLAY NEXT!
                 </motion.button>
                 <button
                   type="button"
@@ -174,7 +175,7 @@ function CourseMap({
                     fontSize: '1.1rem'
                   }}
                 >
-                  🔊 Hear instructions: "Press the big button to play!"
+                  Hear instructions: "Press the big button to play!"
                 </button>
               </div>
             ) : (
@@ -188,7 +189,7 @@ function CourseMap({
                   transition={springTap}
                   style={{ width: 'fit-content' }}
                 >
-                  🔄 PLAY AGAIN!
+                  PLAY AGAIN!
                 </motion.button>
                 <button
                   type="button"
@@ -209,7 +210,7 @@ function CourseMap({
                     fontSize: '1.1rem'
                   }}
                 >
-                  🔊 Hear instructions: "Play again!"
+                  Hear instructions: "Play again!"
                 </button>
               </div>
             )}
@@ -322,7 +323,7 @@ function CourseMap({
                       <>
                         <p>{module.mission}</p>
                         <div className="lock-milestone-text">
-                          {isLocked ? '🔒' : '🔓'} Total Scoin Seeds: {completedCount}/{totalLessons}
+                          {isLocked ? 'Locked' : 'Unlocked'} • Total Scoin Seeds: {completedCount}/{totalLessons}
                         </div>
                       </>
                     ) : (
@@ -357,7 +358,7 @@ function CourseMap({
                     <motion.div className="home-victory-banner"
                       animate={{ scale: [1, 1.08, 1] }}
                       transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}>
-                      🎉 VICTORY! ZIBI IS HOME! 🎉
+                      VICTORY! ZIBI IS HOME!
                     </motion.div>
                   )}
                 </motion.div>
@@ -372,9 +373,7 @@ function CourseMap({
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 20, scale: 0.9 }}
                 transition={{ type: 'spring', stiffness: 150, damping: 12 }}>
-                <span>🎉</span>
                 <strong>Ship Repaired! You've Finished!</strong>
-                <span>🛸</span>
               </motion.div>
             )}
           </AnimatePresence>
@@ -470,7 +469,7 @@ function LessonScreen({
           <motion.div className="lesson-header" variants={fadeUpFast}>
             <motion.button className="back-button" type="button" onClick={onBack}
               whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.96 }} transition={springTap}>
-              🗺️ Map
+              Map
             </motion.button>
             <div style={{ display: 'grid', justifyItems: 'end', gap: '4px' }}>
               <span>{activeModule.planet}</span>
@@ -515,7 +514,7 @@ function LessonScreen({
                     color: 'var(--ink)'
                   }}
                 >
-                  🔊 Hear Story
+                  Hear Story
                 </button>
               </motion.p>
             </motion.div>
@@ -591,7 +590,7 @@ function LessonScreen({
                 </div>
                 <motion.button className="primary-action" type="button" onClick={onNext}
                   whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.96 }} transition={springTap}>
-                  🚀 Next Mission
+                  Next Mission
                 </motion.button>
               </motion.div>
             )}
@@ -681,7 +680,7 @@ function PhonicsMission({
         whileHover={{ y: -3, boxShadow: '0 20px 0 rgba(23,32,51,0.15)' }}
         transition={{ type: 'spring', stiffness: 200, damping: 12 }}
       >
-        <div className="target-label">Teach Zibi (Tap to Hear) 🔊</div>
+        <div className="target-label">Teach Zibi (Tap to Hear)</div>
         <motion.h2
           animate={isListening ? { scale: [1, 1.06, 1] } : {}}
           transition={{ duration: 1.2, repeat: isListening ? Infinity : 0, ease: 'easeInOut' }}>
@@ -783,7 +782,7 @@ function PhonicsMission({
             <motion.button key="start" className="primary-action" type="button" disabled={!isSupported} onClick={onStartRecording}
               initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
               whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.96 }} transition={springTap}>
-              🎙️ Start Speaking
+              Start Speaking
             </motion.button>
           )}
           {status === 'recording' && (
@@ -795,13 +794,13 @@ function PhonicsMission({
                 opacity: { duration: 0.3 },
                 scale: { duration: 0.8, repeat: Infinity, ease: 'easeInOut' }
               }}>
-              🛑 Check My Sound
+              Check My Sound
             </motion.button>
           )}
           {status === 'checking' && (
             <motion.button key="checking" className="primary-action" type="button" disabled
               initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
-              ⏳ Checking...
+              Checking...
             </motion.button>
           )}
         </AnimatePresence>
@@ -922,7 +921,7 @@ function SentenceMission({ lesson, status, feedbackText, selectedTiles, onTile, 
             <motion.button className="secondary-action clear-action" type="button" onClick={onClear}
               initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
               whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.96 }} transition={springTap}>
-              🧹 Clear
+              Clear
             </motion.button>
           )}
         </AnimatePresence>
@@ -1036,7 +1035,7 @@ function WritingMission({ lesson, status, onComplete }: WritingMissionProps) {
     
     const inkRatio = inkPixels / (canvas.width * canvas.height);
     if (inkRatio < 0.003) {
-      setLocalFeedback('Please write the word clearly before checking! ✏️');
+      setLocalFeedback('Please write the word clearly before checking!');
       return;
     }
 
@@ -1098,11 +1097,7 @@ function WritingMission({ lesson, status, onComplete }: WritingMissionProps) {
         <motion.div className="writing-word-display"
           animate={status === 'success' ? { scale: [1, 1.04, 1] } : {}}
           transition={{ duration: 0.5 }}>
-          <motion.span className="writing-emoji" aria-hidden="true"
-            animate={{ rotate: [0, 5, -5, 0] }}
-            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}>
-            {lesson.wordEmoji}
-          </motion.span>
+          <PictureBadge art={lesson.targetWord.toLowerCase() as PictureArt} label={lesson.targetWord} />
           <motion.h2 className="writing-target-word"
             animate={status === 'success' ? { scale: [1, 1.08, 1], color: ['#172033', '#8677ff', '#172033'] } : {}}
             transition={{ duration: 0.6 }}>
@@ -1113,7 +1108,7 @@ function WritingMission({ lesson, status, onComplete }: WritingMissionProps) {
         <motion.p className="writing-instruction"
           animate={!hasInk && status !== 'success' ? { opacity: [1, 0.6, 1] } : {}}
           transition={{ duration: 2, repeat: status !== 'success' ? Infinity : 0 }}>
-          Write <strong>{lesson.targetWord}</strong> on the canvas below ✏️
+          Write <strong>{lesson.targetWord}</strong> on the canvas below
         </motion.p>
       </motion.section>
 
@@ -1138,7 +1133,7 @@ function WritingMission({ lesson, status, onComplete }: WritingMissionProps) {
           {!hasInk && status !== 'success' && !isChecking && (
             <motion.div className="canvas-placeholder" aria-hidden="true"
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              ✏️ Draw here…
+              Draw here…
             </motion.div>
           )}
         </AnimatePresence>
@@ -1167,7 +1162,7 @@ function WritingMission({ lesson, status, onComplete }: WritingMissionProps) {
                 onClick={clearCanvas}
                 disabled={isChecking}
                 whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.96 }} transition={springTap}>
-                🧹 Clear Canvas
+                Clear Canvas
               </motion.button>
               <motion.button
                 className="primary-action"
@@ -1175,7 +1170,7 @@ function WritingMission({ lesson, status, onComplete }: WritingMissionProps) {
                 disabled={!hasInk || isChecking}
                 onClick={handleCheck}
                 whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.96 }} transition={springTap}>
-                {isChecking ? '⏳ Scanning...' : '✅ Check My Writing!'}
+                {isChecking ? 'Scanning...' : 'Check My Writing!'}
               </motion.button>
             </motion.div>
           )}

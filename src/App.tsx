@@ -97,7 +97,7 @@ function App() {
   const [selectedTiles, setSelectedTiles] = useState<string[]>([]);
   const [isServerConnected, setIsServerConnected] = useState<boolean | null>(null);
   const [bestVoice, setBestVoice] = useState<VoiceSnapshot>(EMPTY_VOICE);
-  const [sparkles, setSparkles] = useState<{ id: number; emoji: string; x: number; y: number; scale: number }[]>([]);
+  const [sparkles, setSparkles] = useState<{ id: number; color: string; shape: 'circle' | 'square' | 'star'; x: number; y: number; scale: number }[]>([]);
 
   const bestVoiceRef = useRef<VoiceSnapshot>(EMPTY_VOICE);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
@@ -164,10 +164,12 @@ function App() {
   }, [feedbackText]);
 
   const triggerExplosion = () => {
-    const emojis = ['✨', '⭐️', '🎉', '🪐', '💫', '🎨', '🚀', '🥳', '🎈', '⚡️', '🦄', '🛸'];
+    const colors = ['var(--yellow)', 'var(--green)', 'var(--orange)', 'var(--purple)', 'var(--blue)', 'var(--pink)'];
+    const shapes = ['circle', 'square', 'star'] as const;
     const newSparkles = Array.from({ length: 25 }).map(() => ({
       id: Math.random(),
-      emoji: emojis[Math.floor(Math.random() * emojis.length)],
+      color: colors[Math.floor(Math.random() * colors.length)],
+      shape: shapes[Math.floor(Math.random() * shapes.length)],
       x: Math.random() * 80 + 10,
       y: Math.random() * 80 + 10,
       scale: Math.random() * 0.8 + 0.6,
@@ -590,11 +592,14 @@ function App() {
           style={{
             left: `${s.x}%`,
             top: `${s.y}%`,
-            transform: `scale(${s.scale})`,
+            width: '16px',
+            height: '16px',
+            background: s.color,
+            border: '2px solid var(--line)',
+            borderRadius: s.shape === 'circle' ? '50%' : s.shape === 'star' ? '50% 50% 50% 0' : '4px',
+            transform: s.shape === 'star' ? 'rotate(-35deg)' : undefined,
           }}
-        >
-          {s.emoji}
-        </span>
+        />
       ))}
     </div>
   );

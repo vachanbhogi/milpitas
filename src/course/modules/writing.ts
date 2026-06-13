@@ -1,0 +1,50 @@
+import type { CourseModule } from '../../types';
+
+export const writingModule: CourseModule = {
+  id: 'writing',
+  title: 'Scribble Spaceship',
+  planet: 'Ink Nebula',
+  mission: 'Write Earth words using the spaceship stylus.',
+  colorClass: 'violet',
+  lessons: [
+    {
+      id: 'write-sun',
+      moduleId: 'writing',
+      type: 'writing',
+      title: 'Write SUN',
+      storyPrompt: 'Draw the letters S - U - N to power the ship with solar energy.',
+      rewardName: 'Solar Sail Ink',
+      targetWord: 'SUN',
+      description: 'The Sun is the giant star at the center of our solar system. It gives light and warmth to every planet, and makes life on Earth possible.',
+      wordEmoji: '☀️',
+      successPrompt: 'Amazing! Zibi can read the word SUN!',
+      retryPrompt: 'Try writing the word SUN clearly on the canvas. Make sure the letters are uppercase.',
+    },
+    {
+      id: 'write-moon',
+      moduleId: 'writing',
+      type: 'writing',
+      title: 'Write MOON',
+      storyPrompt: 'Scribe M - O - O - N to guide the night flight.',
+      rewardName: 'Night Glow Ink',
+      targetWord: 'MOON',
+      description: "The Moon is Earth's only natural satellite. It orbits our planet and its gravity creates the ocean tides. Astronauts walked on it in 1969!",
+      wordEmoji: '🌕',
+      successPrompt: 'Perfect! Zibi recognizes the word MOON!',
+      retryPrompt: 'Make sure your letters for MOON are distinct and uppercase.',
+    },
+    {
+      id: 'write-star',
+      moduleId: 'writing',
+      type: 'writing',
+      title: 'Write STAR',
+      storyPrompt: 'Etch S - T - A - R to navigate the ink trails.',
+      rewardName: 'Nebula Starlight',
+      targetWord: 'STAR',
+      description: 'Stars are enormous balls of glowing gas held together by gravity. They fuse hydrogen into helium, releasing light and heat. Our Sun is a star!',
+      wordEmoji: '⭐',
+      successPrompt: 'Spectacular! The word STAR lights up the cockpit!',
+      retryPrompt: 'Try drawing STAR again in uppercase letters.',
+    }
+  ],
+};

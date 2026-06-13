@@ -1,15 +1,17 @@
+import { useRef, useState } from 'react';
 import { MascotScene } from '../components/MascotScene';
 import { PictureBadge } from '../components/PictureBadge';
 import { playSynthesizedPhonics } from '../audioUtils';
-import { 
-  type Lesson, 
-  type CourseModule, 
-  type ModuleId, 
-  type LessonStatus, 
-  type PhonicsLesson, 
-  type ChoiceLesson, 
-  type SentenceLesson, 
-  type VoiceSnapshot 
+import {
+  type Lesson,
+  type CourseModule,
+  type ModuleId,
+  type LessonStatus,
+  type PhonicsLesson,
+  type ChoiceLesson,
+  type SentenceLesson,
+  type WritingLesson,
+  type VoiceSnapshot
 } from '../types';
 
 interface AppCourseProps {
@@ -46,6 +48,7 @@ interface AppCourseProps {
   onChoice: (choiceId: string) => void;
   onTile: (tile: string) => void;
   onClearSentence: () => void;
+  onCompleteWriting: () => void;
   onNext: () => void;
 }
 
@@ -115,6 +118,18 @@ function CourseMap({
       ],
     },
     {
+      id: 'writing' as ModuleId,
+      title: 'Scribble Spaceship',
+      planet: 'Ink Nebula',
+      colorClass: 'violet',
+      mission: 'Write Earth words using the spaceship stylus.',
+      lessons: [
+        { id: 'write-sun', title: 'Write SUN ☀️' },
+        { id: 'write-moon', title: 'Write MOON 🌕' },
+        { id: 'write-star', title: 'Write STAR ⭐' },
+      ],
+    },
+    {
       id: 'home-planet' as any,
       title: 'Mumble Home 🪐',
       planet: 'Mumble Home Planet',
@@ -125,7 +140,7 @@ function CourseMap({
   ];
 
   // Detect Zibi's current position
-  const activePlanetIndex = COURSE_MODULES.slice(0, 3).findIndex(m => {
+  const activePlanetIndex = COURSE_MODULES.slice(0, 4).findIndex(m => {
     const moduleDone = m.lessons.filter(l => completedLessons.has(l.id)).length;
     return moduleDone < m.lessons.length;
   });
@@ -213,7 +228,7 @@ function CourseMap({
                 
                 <div className={`path-planet-bubble color-${module.colorClass}`}>
                   <PictureBadge 
-                    art={isHomePlanet ? 'planet' : module.id === 'phonics' ? 'planet' : module.id === 'letters' ? 'star' : 'ship'} 
+                    art={isHomePlanet ? 'planet' : module.id === 'phonics' ? 'planet' : module.id === 'letters' ? 'star' : module.id === 'writing' ? 'paint' : 'ship'} 
                     label={module.title} 
                   />
                   <div className="planet-details">
@@ -285,6 +300,7 @@ interface LessonScreenProps {
   onChoice: (choiceId: string) => void;
   onTile: (tile: string) => void;
   onClearSentence: () => void;
+  onCompleteWriting: () => void;
   onNext: () => void;
 }
 
@@ -313,6 +329,7 @@ function LessonScreen({
   onChoice,
   onTile,
   onClearSentence,
+  onCompleteWriting,
   onNext,
 }: LessonScreenProps) {
   const meterScale = Math.min(Math.max(energy * 5, 0.04), 1);
@@ -332,6 +349,7 @@ function LessonScreen({
   function getLessonIcon(moduleId: string) {
     if (moduleId === 'phonics') return 'sound rings';
     if (moduleId === 'letters') return 'letter lights';
+    if (moduleId === 'writing') return 'ink canvas';
     return 'word blocks';
   }
 
@@ -351,7 +369,7 @@ function LessonScreen({
 
           <div className="mission-banner">
             <PictureBadge 
-              art={lesson.moduleId === 'phonics' ? 'planet' : lesson.moduleId === 'letters' ? 'star' : 'ship'} 
+              art={lesson.moduleId === 'phonics' ? 'planet' : lesson.moduleId === 'letters' ? 'star' : lesson.moduleId === 'writing' ? 'paint' : 'ship'} 
               label={getLessonIcon(lesson.moduleId)} 
             />
             <div>
@@ -397,6 +415,14 @@ function LessonScreen({
               selectedTiles={selectedTiles}
               onTile={onTile}
               onClear={onClearSentence}
+            />
+          )}
+
+          {lesson.type === 'writing' && (
+            <WritingMission
+              lesson={lesson as WritingLesson}
+              status={status}
+              onComplete={onCompleteWriting}
             />
           )}
 
@@ -632,6 +658,154 @@ function SentenceMission({ lesson, status, feedbackText, selectedTiles, onTile, 
           <button className="secondary-action clear-action" type="button" onClick={onClear}>
             Clear
           </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// WritingMission component
+interface WritingMissionProps {
+  lesson: WritingLesson;
+  status: LessonStatus;
+  onComplete: () => void;
+}
+
+function WritingMission({ lesson, status, onComplete }: WritingMissionProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const isDrawingRef = useRef(false);
+  const lastPosRef = useRef<{ x: number; y: number } | null>(null);
+  const [hasInk, setHasInk] = useState(false);
+  const [localFeedback, setLocalFeedback] = useState('');
+
+  const getPos = (
+    e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>
+  ) => {
+    const canvas = canvasRef.current!;
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    if ('touches' in e) {
+      const touch = e.touches[0];
+      return {
+        x: (touch.clientX - rect.left) * scaleX,
+        y: (touch.clientY - rect.top) * scaleY,
+      };
+    }
+    return {
+      x: (e.clientX - rect.left) * scaleX,
+      y: (e.clientY - rect.top) * scaleY,
+    };
+  };
+
+  const startDraw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+    isDrawingRef.current = true;
+    lastPosRef.current = getPos(e);
+  };
+
+  const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+    if (!isDrawingRef.current || !canvasRef.current || !lastPosRef.current) return;
+    const ctx = canvasRef.current.getContext('2d')!;
+    const pos = getPos(e);
+    ctx.beginPath();
+    ctx.moveTo(lastPosRef.current.x, lastPosRef.current.y);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.strokeStyle = '#c4b5fd';
+    ctx.lineWidth = 10;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.shadowBlur = 14;
+    ctx.shadowColor = '#8b5cf6';
+    ctx.stroke();
+    lastPosRef.current = pos;
+    if (!hasInk) setHasInk(true);
+  };
+
+  const stopDraw = () => {
+    isDrawingRef.current = false;
+    lastPosRef.current = null;
+  };
+
+  const clearCanvas = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d')!;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    setHasInk(false);
+    setLocalFeedback('');
+  };
+
+  const handleCheck = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d')!;
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    let inkPixels = 0;
+    for (let i = 3; i < imageData.data.length; i += 4) {
+      if (imageData.data[i] > 10) inkPixels++;
+    }
+    const inkRatio = inkPixels / (canvas.width * canvas.height);
+    if (inkRatio > 0.012) {
+      onComplete();
+    } else {
+      setLocalFeedback(lesson.retryPrompt);
+    }
+  };
+
+  return (
+    <div className="mission-body">
+      <section className="writing-target-panel">
+        <div className="writing-word-display">
+          <span className="writing-emoji" aria-hidden="true">{lesson.wordEmoji}</span>
+          <h2 className="writing-target-word">{lesson.targetWord}</h2>
+        </div>
+        <p className="writing-description">{lesson.description}</p>
+        <p className="writing-instruction">
+          Write <strong>{lesson.targetWord}</strong> on the canvas below ✏️
+        </p>
+      </section>
+
+      <div className="writing-canvas-wrap">
+        <canvas
+          ref={canvasRef}
+          width={620}
+          height={200}
+          className="writing-canvas"
+          aria-label={`Drawing canvas — write the word ${lesson.targetWord}`}
+          onMouseDown={startDraw}
+          onMouseMove={draw}
+          onMouseUp={stopDraw}
+          onMouseLeave={stopDraw}
+          onTouchStart={startDraw}
+          onTouchMove={draw}
+          onTouchEnd={stopDraw}
+        />
+        {!hasInk && status !== 'success' && (
+          <div className="canvas-placeholder" aria-hidden="true">✏️ Draw here…</div>
+        )}
+      </div>
+
+      {localFeedback && (
+        <p className="writing-local-feedback">{localFeedback}</p>
+      )}
+
+      <div className="lesson-actions">
+        {status !== 'success' && (
+          <>
+            <button className="secondary-action" type="button" onClick={clearCanvas}>
+              Clear Canvas
+            </button>
+            <button
+              className="primary-action"
+              type="button"
+              disabled={!hasInk}
+              onClick={handleCheck}
+            >
+              Check My Writing!
+            </button>
+          </>
         )}
       </div>
     </div>

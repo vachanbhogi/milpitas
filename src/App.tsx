@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useMicrophone } from './hooks/useMicrophone';
 import { type SoundClass, useLiveVoiceAnalyzer } from './hooks/useLiveVoiceAnalyzer';
 import { playSynthesizedPhonics, encodeFloat32ArrayToWav } from './audioUtils';
+import { writingModule } from './course/modules/writing';
 import './App.css';
 
 // Page and Component Imports
@@ -14,7 +15,8 @@ import {
   type VoiceSnapshot,
   type PhonicsLesson,
   type ChoiceLesson,
-  type SentenceLesson
+  type SentenceLesson,
+  type WritingLesson
 } from './types';
 import { Home } from './pages/Home';
 import { AppCourse } from './pages/AppCourse';
@@ -326,6 +328,7 @@ export const COURSE_MODULES: CourseModule[] = [
       },
     ],
   },
+  writingModule,
 ];
 
 const EMPTY_VOICE: VoiceSnapshot = {
@@ -386,6 +389,10 @@ function isChoiceLesson(lesson: Lesson): lesson is ChoiceLesson {
 
 function isSentenceLesson(lesson: Lesson): lesson is SentenceLesson {
   return lesson.type === 'sentence-build';
+}
+
+function isWritingLesson(lesson: Lesson): lesson is WritingLesson {
+  return lesson.type === 'writing';
 }
 
 function getSoundLabel(soundClass: SoundClass) {
@@ -504,7 +511,13 @@ function App() {
       setFeedbackText(isPhonicsLesson(lesson) ? `Zibi learned ${lesson.displayText}.` : 'Lesson complete.');
     } else {
       setLessonStatus('idle');
-      setFeedbackText(isPhonicsLesson(lesson) ? lesson.storyPrompt : lesson.prompt);
+      if (isPhonicsLesson(lesson)) {
+        setFeedbackText(lesson.storyPrompt);
+      } else if (isWritingLesson(lesson)) {
+        setFeedbackText(lesson.storyPrompt);
+      } else {
+        setFeedbackText((lesson as ChoiceLesson | SentenceLesson).prompt);
+      }
     }
   };
 
@@ -706,6 +719,15 @@ function App() {
     setFeedbackText(activeLesson.storyPrompt);
   };
 
+  const handleCompleteWriting = () => {
+    if (!isWritingLesson(activeLesson) || lessonStatus === 'success') return;
+    markLessonComplete(activeLesson);
+    setLessonStatus('success');
+    setFeedbackText(activeLesson.successPrompt);
+    playSoundEffect('success');
+    triggerExplosion();
+  };
+
   const goNext = () => {
     if (nextLesson) {
       goToLesson(nextLesson);
@@ -713,7 +735,6 @@ function App() {
       setView('course');
     }
   };
-
   return (
     <div className="app-shell">
       <header className="app-header">
@@ -784,6 +805,7 @@ function App() {
           onChoice={handleChoice}
           onTile={handleTile}
           onClearSentence={clearSentence}
+          onCompleteWriting={handleCompleteWriting}
           onNext={goNext}
         />
       )}

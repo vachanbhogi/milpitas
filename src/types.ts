@@ -1,5 +1,5 @@
 export type View = 'home' | 'course' | 'lesson' | 'rewards';
-export type ModuleId = 'phonics' | 'letters' | 'grammar';
+export type ModuleId = 'phonics' | 'letters' | 'grammar' | 'writing';
 export type LessonStatus = 'idle' | 'recording' | 'checking' | 'success' | 'retry' | 'error';
 export type PictureArt = 'rocket' | 'moon' | 'sun' | 'leaf' | 'planet' | 'star' | 'jump' | 'paint' | 'ship' | 'path';
 
@@ -49,7 +49,16 @@ export interface SentenceLesson extends BaseLesson {
   retryPrompt: string;
 }
 
-export type Lesson = PhonicsLesson | ChoiceLesson | SentenceLesson;
+export interface WritingLesson extends BaseLesson {
+  type: 'writing';
+  targetWord: string;
+  description: string;
+  wordEmoji: string;
+  successPrompt: string;
+  retryPrompt: string;
+}
+
+export type Lesson = PhonicsLesson | ChoiceLesson | SentenceLesson | WritingLesson;
 
 export interface CourseModule {
   id: ModuleId;

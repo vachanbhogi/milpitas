@@ -727,13 +727,13 @@ function App() {
 
         <nav className="top-nav" aria-label="main navigation">
           <button className={view === 'home' ? 'is-active' : ''} type="button" onClick={() => setView('home')}>
-            Home
+            Pitch & Showcase
           </button>
           <button className={view === 'course' || view === 'lesson' ? 'is-active' : ''} type="button" onClick={() => setView('course')}>
-            App Course
+            Sound Safari
           </button>
           <button className={view === 'rewards' ? 'is-active' : ''} type="button" onClick={() => setView('rewards')}>
-            Rewards
+            Stellar Rewards
           </button>
         </nav>
 

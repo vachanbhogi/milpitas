@@ -17,6 +17,10 @@
   --font-display: 'Fredoka', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-main: 'Outfit', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
 * {
@@ -167,6 +171,7 @@ button:focus-visible {
   align-items: center;
   justify-content: center;
   gap: 8px;
+  padding: 0 20px;
   border-radius: 999px;
   background: #fff3a8;
   font-weight: 1000;
@@ -279,7 +284,7 @@ button:focus-visible {
   font-size: 1rem;
   font-weight: 1000;
   box-shadow: 5px 5px 0 var(--line);
-  transition: transform 150ms ease, box-shadow 150ms ease;
+  transition: transform 160ms var(--ease-out), box-shadow 160ms var(--ease-out);
 }
 
 .primary-action {
@@ -323,9 +328,19 @@ button:focus-visible {
   box-shadow: 2px 2px 0 var(--line);
 }
 
+/* Extended interactive elements with Emil active state */
+.brand-button:active .brand-mark,
+.faq-question:active,
+.synth-demo-btn:active,
+.start-planet-btn:active,
+.path-dot:active {
+  transform: scale(0.96);
+  transition: transform 100ms var(--ease-out);
+}
+
 .status-strip {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 12px;
 }
 
@@ -960,6 +975,31 @@ button:focus-visible {
   isolation: isolate;
 }
 
+.mascot-scene:not(.mood-launch) .ship-wrap {
+  animation: gentleFloat 3s var(--ease-in-out) infinite;
+}
+
+.mascot-scene:not(.mood-launch) .alien {
+  animation: breathe 4s var(--ease-in-out) infinite;
+}
+
+.mascot-scene .eye {
+  transform-origin: center center;
+}
+
+.mascot-scene .eye.left::before,
+.mascot-scene .eye.right::before {
+  animation: blink 4s ease-in-out infinite;
+}
+
+.mascot-scene:not(.mood-launch) .antenna {
+  animation: gentleSway 3s var(--ease-in-out) infinite;
+}
+
+.mascot-scene:not(.mood-launch) .antenna.right {
+  animation-delay: -1.5s;
+}
+
 .ship-wrap {
   position: absolute;
   top: 12%;
@@ -1299,6 +1339,101 @@ button:focus-visible {
   }
 }
 
+@keyframes gentleFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes gentleSway {
+  0%, 100% { transform: rotate(-2deg); }
+  50% { transform: rotate(2deg); }
+}
+
+@keyframes blink {
+  0%, 96%, 100% { transform: scaleY(1); }
+  98% { transform: scaleY(0.1); }
+}
+
+@keyframes breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02, 0.98); }
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.3; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+@keyframes spinSlow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes wiggleAntLeft {
+  0% { transform: rotate(-22deg); }
+  100% { transform: rotate(-45deg); }
+}
+
+@keyframes wiggleAntRight {
+  0% { transform: rotate(22deg); }
+  100% { transform: rotate(45deg); }
+}
+
+@keyframes lookingAround {
+  0%, 100% { transform: translate(0, 0); }
+  33% { transform: translate(-3px, -1px); }
+  66% { transform: translate(3px, -1px); }
+}
+
+@keyframes glowPulse {
+  0% { background: var(--yellow); box-shadow: none; }
+  100% { background: var(--orange); box-shadow: 0 0 12px var(--orange); }
+}
+
+@keyframes childBounce {
+  0% { transform: translateY(0) scale(1); }
+  100% { transform: translateY(-20px) scale(0.96, 1.04); }
+}
+
+@keyframes flameFlicker {
+  0% { transform: scaleY(0.85); opacity: 0.8; }
+  100% { transform: scaleY(1.15); opacity: 1; }
+}
+
+@keyframes pathFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes victoryBounce {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+@keyframes floatUp {
+  0% {
+    transform: translateY(100px) scale(0) rotate(0deg);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-120px) scale(1.2) rotate(25deg);
+    opacity: 0;
+  }
+}
+
+@keyframes rainbowFlame {
+  0% { filter: hue-rotate(0deg); }
+  100% { filter: hue-rotate(360deg); }
+}
+
+@keyframes floatCrown {
+  0% { transform: translateX(-50%) translateY(0); }
+  100% { transform: translateX(-50%) translateY(-6px); }
+}
+
 @keyframes launchBob {
   50% {
     transform: translateY(-12px) rotate(10deg);
@@ -1553,33 +1688,6 @@ button:focus-visible {
 
 .mascot-scene.mood-retry .eye {
   transform: scaleY(0.72);
-}
-
-/* Keyframes */
-@keyframes wiggleAntLeft {
-  0% { transform: rotate(-22deg); }
-  100% { transform: rotate(-45deg); }
-}
-
-@keyframes wiggleAntRight {
-  0% { transform: rotate(22deg); }
-  100% { transform: rotate(45deg); }
-}
-
-@keyframes lookingAround {
-  0%, 100% { transform: translate(0, 0); }
-  33% { transform: translate(-3px, -1px); }
-  66% { transform: translate(3px, -1px); }
-}
-
-@keyframes glowPulse {
-  0% { background: var(--yellow); box-shadow: none; }
-  100% { background: var(--orange); box-shadow: 0 0 12px var(--orange); }
-}
-
-@keyframes childBounce {
-  0% { transform: translateY(0) scale(1); }
-  100% { transform: translateY(-20px) scale(0.96, 1.04); }
 }
 
 /* ==========================================================================
@@ -2099,18 +2207,8 @@ button:focus-visible {
   animation: flameFlicker 0.4s ease-in-out infinite alternate;
 }
 
-@keyframes flameFlicker {
-  0% { transform: scaleY(0.85); opacity: 0.8; }
-  100% { transform: scaleY(1.15); opacity: 1; }
-}
-
 .animate-float {
   animation: pathFloat 3s ease-in-out infinite;
-}
-
-@keyframes pathFloat {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
 }
 
 .indicator-tooltip {
@@ -2146,11 +2244,6 @@ button:focus-visible {
   color: var(--green);
   text-align: center;
   animation: victoryBounce 1s ease-in-out infinite;
-}
-
-@keyframes victoryBounce {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.08); }
 }
 
 /* Milestone tracking */
@@ -2272,12 +2365,6 @@ button:focus-visible {
   box-shadow: 3px 3px 0 var(--line) !important;
 }
 
-/* Rainbow engine and Crown */
-@keyframes rainbowFlame {
-  0% { filter: hue-rotate(0deg); }
-  100% { filter: hue-rotate(360deg); }
-}
-
 .rainbow-flame-grad {
   background: linear-gradient(180deg, #ff3366, #ff9933, #ffff33, #33cc66, #3399ff, #9933ff) !important;
   animation: rainbowFlame 0.8s linear infinite !important;
@@ -2292,11 +2379,6 @@ button:focus-visible {
   z-index: 5;
   filter: drop-shadow(0 2px 0 var(--line));
   animation: floatCrown 1.5s ease-in-out infinite alternate;
-}
-
-@keyframes floatCrown {
-  0% { transform: translateX(-50%) translateY(0); }
-  100% { transform: translateX(-50%) translateY(-6px); }
 }
 
 /* --- Galaxy Rewards Orbit Flight Path --- */

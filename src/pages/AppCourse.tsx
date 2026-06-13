@@ -257,7 +257,7 @@ function CourseMap({
                   </div>
                   
                   {!isLocked && !isHomePlanet && (
-                    <motion.button className="primary-action start-planet-btn" onClick={() => onOpenModule(module.id)}
+                    <motion.button className="primary-action start-planet-btn" type="button" onClick={() => onOpenModule(module.id)}
                       whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} transition={springTap}>
                       Land!
                     </motion.button>
@@ -548,8 +548,16 @@ function PhonicsMission({
     <motion.div className="mission-body" variants={stagger}>
       <motion.section
         className="sound-stage clickable-sound-stage"
-        aria-label="speech mission"
+        role="button"
+        tabIndex={0}
+        aria-label={`Teach Zibi target sound: ${lesson.targetText}. Tap or press enter to hear.`}
         onClick={() => playSynthesizedPhonics(lesson.targetText)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            playSynthesizedPhonics(lesson.targetText);
+          }
+        }}
         style={{ cursor: 'pointer' }}
         variants={fadeUpFast}
         whileHover={{ y: -3, boxShadow: '0 20px 0 rgba(23,32,51,0.15)' }}
@@ -563,8 +571,9 @@ function PhonicsMission({
         </motion.h2>
         <motion.div className="phonics-row" aria-label="sound parts" variants={stagger}>
           {lesson.phonicsParts.map(part => (
-            <motion.span
+            <motion.button
               key={part}
+              type="button"
               variants={fadeUpFast}
               onClick={(e) => {
                 e.stopPropagation();
@@ -576,7 +585,7 @@ function PhonicsMission({
               transition={{ type: 'spring', stiffness: 300, damping: 10 }}
             >
               {part}
-            </motion.span>
+            </motion.button>
           ))}
         </motion.div>
         <p>{lesson.coachPrompt}</p>
@@ -998,7 +1007,7 @@ function WritingMission({ lesson, status, onComplete }: WritingMissionProps) {
           width={620}
           height={200}
           className="writing-canvas"
-          aria-label={`Drawing canvas — write the word ${lesson.targetWord}`}
+          aria-label={`Drawing canvas: write the word ${lesson.targetWord}`}
           onMouseDown={startDraw}
           onMouseMove={draw}
           onMouseUp={stopDraw}

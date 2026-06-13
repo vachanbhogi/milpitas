@@ -1,8 +1,9 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { MascotScene } from '../components/MascotScene';
 import { PictureBadge } from '../components/PictureBadge';
 import { playSynthesizedPhonics } from '../audioUtils';
 import { COURSE_MODULES as REAL_COURSE_MODULES } from '../course/courseModules';
+import Tesseract from 'tesseract.js';
 import {
   type Lesson,
   type CourseModule,
@@ -160,10 +161,27 @@ function CourseMap({
 
       {/* Spacelike flight path constellation */}
       <section className="flight-path-section">
-        <h2>Constellation Orbit Trail</h2>
-        <p className="path-subtitle">Navigate down the flight line to repair Zibi's rocket and fly home!</p>
+        <h2 className="orbit-heading">✦ Constellation Orbit Trail ✦</h2>
+        <p className="path-subtitle">Follow the orbital trail to repair Zibi's ship and fly home!</p>
         <div className="flight-path-container">
-          <div className="flight-path-line" />
+          <svg className="flight-path-svg" viewBox="0 0 800 600" preserveAspectRatio="none">
+            <defs>
+              <radialGradient id="nodeGlow" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stopColor="var(--yellow)" stopOpacity="0.6" />
+                <stop offset="100%" stopColor="var(--yellow)" stopOpacity="0" />
+              </radialGradient>
+            </defs>
+            <path
+              className="flight-path-curve"
+              d="M145 80 C480 120, 480 120, 655 180 C480 240, 480 240, 145 300 C480 360, 480 360, 655 420 C480 480, 480 480, 145 520"
+              fill="none"
+            />
+            <circle cx="145" cy="80" r="18" fill="url(#nodeGlow)" opacity="0.5" />
+            <circle cx="655" cy="180" r="18" fill="url(#nodeGlow)" opacity="0.5" />
+            <circle cx="145" cy="300" r="18" fill="url(#nodeGlow)" opacity="0.5" />
+            <circle cx="655" cy="420" r="18" fill="url(#nodeGlow)" opacity="0.5" />
+            <circle cx="145" cy="520" r="18" fill="url(#nodeGlow)" opacity="0.5" />
+          </svg>
           
           {courseNodes.map((module, index) => {
             const side = index % 2 === 0 ? 'left' : 'right';
@@ -179,7 +197,15 @@ function CourseMap({
               <div key={module.id} className={`path-node-wrap ${side} ${isCurrentActive ? 'active' : ''} ${isLocked ? 'locked' : ''}`}>
                 {isCurrentActive && (
                   <div className="ship-avatar-indicator animate-float">
-                    🚀 <span className="indicator-tooltip">Zibi is here!</span>
+                    <div className="path-ship-wrap" aria-hidden="true">
+                      <div className="path-ship">
+                        <span className="path-ship-window" />
+                        <span className="path-ship-fin left" />
+                        <span className="path-ship-fin right" />
+                        <span className="path-ship-flame" />
+                      </div>
+                    </div>
+                    <span className="indicator-tooltip">Zibi is here!</span>
                   </div>
                 )}
                 
@@ -627,6 +653,7 @@ function SentenceMission({ lesson, status, feedbackText, selectedTiles, onTile, 
 }
 
 // WritingMission component
+// WritingMission component
 interface WritingMissionProps {
   lesson: WritingLesson;
   status: LessonStatus;
@@ -639,6 +666,7 @@ function WritingMission({ lesson, status, onComplete }: WritingMissionProps) {
   const lastPosRef = useRef<{ x: number; y: number } | null>(null);
   const [hasInk, setHasInk] = useState(false);
   const [localFeedback, setLocalFeedback] = useState('');
+  const [isChecking, setIsChecking] = useState(false);
 
   const getPos = (
     e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>
@@ -674,12 +702,13 @@ function WritingMission({ lesson, status, onComplete }: WritingMissionProps) {
     ctx.beginPath();
     ctx.moveTo(lastPosRef.current.x, lastPosRef.current.y);
     ctx.lineTo(pos.x, pos.y);
-    ctx.strokeStyle = '#c4b5fd';
-    ctx.lineWidth = 10;
+    
+    ctx.strokeStyle = '#222';
+    ctx.lineWidth = 12;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    ctx.shadowBlur = 14;
-    ctx.shadowColor = '#8b5cf6';
+    ctx.shadowBlur = 0;
+    
     ctx.stroke();
     lastPosRef.current = pos;
     if (!hasInk) setHasInk(true);
@@ -694,25 +723,93 @@ function WritingMission({ lesson, status, onComplete }: WritingMissionProps) {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d')!;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
     setHasInk(false);
     setLocalFeedback('');
   };
 
-  const handleCheck = () => {
+  // Reset the whiteboard and state after every level / when active lesson changes
+  useEffect(() => {
+    clearCanvas();
+  }, [lesson.id]);
+
+  const handleCheck = async () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+    
     const ctx = canvas.getContext('2d')!;
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    
+    // Quick pixel density check to ensure something is drawn on the board
     let inkPixels = 0;
-    for (let i = 3; i < imageData.data.length; i += 4) {
-      if (imageData.data[i] > 10) inkPixels++;
+    for (let i = 0; i < imageData.data.length; i += 4) {
+      const r = imageData.data[i];
+      const g = imageData.data[i+1];
+      const b = imageData.data[i+2];
+      if (r < 240 || g < 240 || b < 240) {
+        inkPixels++;
+      }
     }
+    
     const inkRatio = inkPixels / (canvas.width * canvas.height);
-    if (inkRatio > 0.012) {
-      onComplete();
-    } else {
-      setLocalFeedback(lesson.retryPrompt);
+    if (inkRatio < 0.003) {
+      setLocalFeedback('Please write the word clearly before checking! ✏️');
+      return;
+    }
+
+    setIsChecking(true);
+    setLocalFeedback('Reading…');
+
+    try {
+      // Perform local character recognition via Tesseract.js
+      const result = await Tesseract.recognize(canvas, 'eng');
+      const text = result.data.text || '';
+      
+      const cleanOcr = text.toUpperCase().replace(/[^A-Z]/g, '');
+      const cleanTarget = lesson.targetWord.toUpperCase().replace(/[^A-Z]/g, '');
+
+      // Evaluate writing: exact match, substring match, or character overlap check
+      let isCorrect = cleanOcr.includes(cleanTarget);
+      
+      if (!isCorrect && cleanOcr.length >= 2) {
+        // Order-preserving character intersection count (handles minor line breaks/gaps in handdrawn letters)
+        let targetIndex = 0;
+        let matchCount = 0;
+        for (let i = 0; i < cleanOcr.length; i++) {
+          if (cleanOcr[i] === cleanTarget[targetIndex]) {
+            matchCount++;
+            targetIndex++;
+            if (targetIndex >= cleanTarget.length) break;
+          }
+        }
+        // If they drew at least (length - 1) letters in order, count it as a correct match
+        if (matchCount >= Math.max(2, cleanTarget.length - 1)) {
+          isCorrect = true;
+        }
+      }
+
+      if (isCorrect) {
+        onComplete();
+      } else {
+        const heardTextSnippet = cleanOcr 
+          ? `Zibi scanned "${cleanOcr}"` 
+          : `Zibi couldn't distinguish the letters`;
+        setLocalFeedback(`${heardTextSnippet}. ${lesson.retryPrompt}`);
+      }
+    } catch (err) {
+      console.error('Tesseract OCR failure:', err);
+      // Fail-safe logic: Fallback to pixel validation if offline/browser resources crash
+      if (inkRatio > 0.012) {
+        onComplete();
+      } else {
+        setLocalFeedback(lesson.retryPrompt);
+      }
+    } finally {
+      setIsChecking(false);
     }
   };
 
@@ -744,28 +841,33 @@ function WritingMission({ lesson, status, onComplete }: WritingMissionProps) {
           onTouchMove={draw}
           onTouchEnd={stopDraw}
         />
-        {!hasInk && status !== 'success' && (
+        {!hasInk && status !== 'success' && !isChecking && (
           <div className="canvas-placeholder" aria-hidden="true">✏️ Draw here…</div>
         )}
       </div>
 
       {localFeedback && (
-        <p className="writing-local-feedback">{localFeedback}</p>
+        <p className={`writing-local-feedback ${isChecking ? 'is-checking' : ''}`}>{localFeedback}</p>
       )}
 
       <div className="lesson-actions">
         {status !== 'success' && (
           <>
-            <button className="secondary-action" type="button" onClick={clearCanvas}>
+            <button 
+              className="secondary-action" 
+              type="button" 
+              onClick={clearCanvas}
+              disabled={isChecking}
+            >
               Clear Canvas
             </button>
             <button
               className="primary-action"
               type="button"
-              disabled={!hasInk}
+              disabled={!hasInk || isChecking}
               onClick={handleCheck}
             >
-              Check My Writing!
+              {isChecking ? 'Scanning...' : 'Check My Writing!'}
             </button>
           </>
         )}

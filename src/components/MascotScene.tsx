@@ -6,11 +6,6 @@ interface MascotSceneProps {
 export function MascotScene({ progress, mood }: MascotSceneProps) {
   return (
     <div className={`mascot-scene mood-${mood} ${mood === 'launch' ? 'is-launching' : ''}`} aria-label={`Zibi ship ${progress}% repaired`}>
-      <div className="planet-orbit" aria-hidden="true">
-        <span />
-        <span />
-        <span />
-      </div>
       <div className="ship-wrap" aria-hidden="true">
         <div className="ship">
           <span className="ship-window" />

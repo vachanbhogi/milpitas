@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "whisper:setup": "cd whisper.cpp && make build && ./models/download-ggml-model.sh tiny.en",
-    "whisper:server": "cd whisper.cpp && ./build/bin/whisper-server -m models/ggml-tiny.en.bin --port 8080 --host 127.0.0.1"
+    "whisper:server": "[ -d whisper.cpp ] && (cd whisper.cpp && ./build/bin/whisper-server -m models/ggml-tiny.en.bin --port 8080 --host 127.0.0.1) || bun whisper-mock-server.js"
   },
   "dependencies": {
     "@huggingface/transformers": "^4.2.0",

@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useMicrophone } from './hooks/useMicrophone';
-import { type SoundClass, useLiveVoiceAnalyzer } from './hooks/useLiveVoiceAnalyzer';
+import { useLiveVoiceAnalyzer } from './hooks/useLiveVoiceAnalyzer';
 import { playSynthesizedPhonics, encodeFloat32ArrayToWav } from './audioUtils';
-import { writingModule } from './course/modules/writing';
+import { COURSE_MODULES } from './course/courseModules';
+import { getSoundLabel, scorePhonemeAttempt, scoreWordAttempt } from './utils/phonicsScoring';
 import './App.css';
 
 // Page and Component Imports
@@ -11,7 +12,6 @@ import {
   type ModuleId, 
   type LessonStatus, 
   type Lesson, 
-  type CourseModule, 
   type VoiceSnapshot,
   type PhonicsLesson,
   type ChoiceLesson,
@@ -21,315 +21,6 @@ import {
 import { Home } from './pages/Home';
 import { AppCourse } from './pages/AppCourse';
 import { Rewards } from './pages/Rewards';
-
-export const COURSE_MODULES: CourseModule[] = [
-  {
-    id: 'phonics',
-    title: 'Sound Safari',
-    planet: 'Echo Planet',
-    mission: 'Teach Zibi the Earth sounds that wake up words.',
-    colorClass: 'yellow',
-    lessons: [
-      {
-        id: 'sound-s',
-        moduleId: 'phonics',
-        type: 'phonics',
-        kind: 'sound',
-        title: 'Star Air ⭐️',
-        storyPrompt: "Zibi's spaceship antenna is tickling! Help him make the snakey ssss sound to activate it!",
-        rewardName: 'Antenna Star Seed',
-        targetText: 's',
-        displayText: 'S',
-        phonicsParts: ['ssss'],
-        successMatches: ['s', 'ess', 'sss', 'say', 'sea', 'see'],
-        expectedSoundClass: 'hissy',
-        coachPrompt: 'Teeth close. Let air slide out like a snake!',
-        retryPrompt: 'Try a long ssss sound!',
-        repairPart: 'antenna',
-      },
-      {
-        id: 'sound-m',
-        moduleId: 'phonics',
-        type: 'phonics',
-        kind: 'sound',
-        title: 'Moon Hum 🌙',
-        storyPrompt: 'The moon engine needs a warm tummy-hug hum: mmmm! Can you help it spin?',
-        rewardName: 'Engine Star Seed',
-        targetText: 'm',
-        displayText: 'M',
-        phonicsParts: ['mmmm'],
-        successMatches: ['m', 'em', 'mmm', 'mom', 'hum'],
-        expectedSoundClass: 'open',
-        coachPrompt: 'Lips together. Let the sound buzz in your nose!',
-        retryPrompt: 'Close your lips and hum: mmmm!',
-        repairPart: 'engine',
-      },
-      {
-        id: 'sound-a',
-        moduleId: 'phonics',
-        type: 'phonics',
-        kind: 'sound',
-        title: 'Open Air 🐥',
-        storyPrompt: 'Catch a space breeze! Open your mouth wide like a baby bird: aaaa!',
-        rewardName: 'Window Star Seed',
-        targetText: 'a',
-        displayText: 'A',
-        phonicsParts: ['aaa'],
-        successMatches: ['a', 'ah', 'aa', 'at'],
-        expectedSoundClass: 'open',
-        coachPrompt: 'Open wide! Short sound: aaa.',
-        retryPrompt: 'Open wide and say aaa!',
-        repairPart: 'window dome',
-      },
-      {
-        id: 'sound-t',
-        moduleId: 'phonics',
-        type: 'phonics',
-        kind: 'sound',
-        title: 'Tap Button ⏰',
-        storyPrompt: 'Tick-tock! The launch button listens for one quick t-t-tap sound like a little clock!',
-        rewardName: 'Button Star Seed',
-        targetText: 't',
-        displayText: 'T',
-        phonicsParts: ['t'],
-        successMatches: ['t', 'tea', 'tee', 'to'],
-        expectedSoundClass: 'pop',
-        coachPrompt: 'Tap your tongue behind your teeth. Make it quick!',
-        retryPrompt: 'Tap the sound: t!',
-        repairPart: 'launch button',
-      },
-      {
-        id: 'sound-p',
-        moduleId: 'phonics',
-        type: 'phonics',
-        kind: 'sound',
-        title: 'Pop Pod 🫧',
-        storyPrompt: 'Pop a space bubble! A fuel pod pops open when it hears you pop: p!',
-        rewardName: 'Fuel Star Seed',
-        targetText: 'p',
-        displayText: 'P',
-        phonicsParts: ['p'],
-        successMatches: ['p', 'pea', 'pee', 'pa'],
-        expectedSoundClass: 'pop',
-        coachPrompt: 'Lips together, then pop them open with a burst of air!',
-        retryPrompt: 'Pop your lips: p!',
-        repairPart: 'fuel pod',
-      },
-      {
-        id: 'word-sat',
-        moduleId: 'phonics',
-        type: 'phonics',
-        kind: 'word',
-        title: 'Ship Seat 🚀',
-        storyPrompt: "Zibi is ready to sit! Let's glide the sounds together to make a seat: s-a-t!",
-        rewardName: 'Seat Star Seed',
-        targetText: 'sat',
-        displayText: 'SAT',
-        phonicsParts: ['s', 'a', 't'],
-        successMatches: ['sat'],
-        coachPrompt: 'Slide the sounds together: s-a-t.',
-        retryPrompt: 'Start with ssss, then aaa, then t.',
-        repairPart: 'seat belt',
-      },
-      {
-        id: 'word-mat',
-        moduleId: 'phonics',
-        type: 'phonics',
-        kind: 'word',
-        title: 'Landing Mat 🛬',
-        storyPrompt: "Splat! Let's make a soft mat for landing: m-a-t!",
-        rewardName: 'Landing Star Seed',
-        targetText: 'mat',
-        displayText: 'MAT',
-        phonicsParts: ['m', 'a', 't'],
-        successMatches: ['mat'],
-        coachPrompt: 'Buzz, open, tap: m-a-t.',
-        retryPrompt: 'Try mmmm, aaa, t.',
-        repairPart: 'landing mat',
-      },
-      {
-        id: 'word-pat',
-        moduleId: 'phonics',
-        type: 'phonics',
-        kind: 'word',
-        title: 'Repair Pat 👋',
-        storyPrompt: 'Gently pat the spaceship hull to fix it: p-a-t!',
-        rewardName: 'Hull Star Seed',
-        targetText: 'pat',
-        displayText: 'PAT',
-        phonicsParts: ['p', 'a', 't'],
-        successMatches: ['pat'],
-        coachPrompt: 'Pop, open, tap: p-a-t.',
-        retryPrompt: 'Try p, aaa, t.',
-        repairPart: 'ship hull',
-      },
-    ],
-  },
-  {
-    id: 'letters',
-    title: 'Letter Lagoon',
-    planet: 'Glow Letter Lagoon',
-    mission: 'Match Earth sounds to big bright letters.',
-    colorClass: 'blue',
-    lessons: [
-      {
-        id: 'letter-s',
-        moduleId: 'letters',
-        type: 'letter-choice',
-        title: 'Find Snakey Sound 🐍',
-        storyPrompt: 'Zibi hears a snakey ssss sound! Help him find the picture that starts with that sound.',
-        rewardName: 'Star Trail Seed',
-        prompt: 'Which picture starts with the ssss sound?',
-        correctChoiceId: 'sun',
-        successPrompt: 'Hooray! Sun starts with S! ☀️',
-        retryPrompt: 'Look for the bright round thing in the sky that starts with ssss.',
-        choices: [
-          { id: 'sun', label: 'Sun', helper: 'ssss-un! ☀️', art: 'sun' },
-          { id: 'moon', label: 'Moon', helper: 'mmmm-oon! 🌙', art: 'moon' },
-          { id: 'leaf', label: 'Leaf', helper: 'llll-eaf! 🍃', art: 'leaf' },
-        ],
-      },
-      {
-        id: 'letter-m',
-        moduleId: 'letters',
-        type: 'letter-choice',
-        title: 'Find Humming Sound 🌙',
-        storyPrompt: 'The night garden hums mmmm! Help Zibi find the humming picture!',
-        rewardName: 'Moon Garden Seed',
-        prompt: 'Which picture starts with the mmmm sound?',
-        correctChoiceId: 'moon',
-        successPrompt: 'Yes! Moon starts with M! 🌙',
-        retryPrompt: 'Look for the glowing shape that shines at night: mmmm.',
-        choices: [
-          { id: 'moon', label: 'Moon', helper: 'mmmm-oon! 🌙', art: 'moon' },
-          { id: 'star', label: 'Star', helper: 'ssss-tar! ⭐️', art: 'star' },
-          { id: 'rocket', label: 'Rocket', helper: 'rrrr-ocket! 🚀', art: 'rocket' },
-        ],
-      },
-      {
-        id: 'letter-p',
-        moduleId: 'letters',
-        type: 'letter-choice',
-        title: 'Find Popping Sound 🪐',
-        storyPrompt: "Listen for the popping pppp sound! Let's choose the correct starting picture!",
-        rewardName: 'Pop Star Seed',
-        prompt: 'Which picture starts with the pppp sound?',
-        correctChoiceId: 'planet',
-        successPrompt: 'Yay! Planet starts with P! 🪐',
-        retryPrompt: 'Look for the big round space ball: pppp-lanet.',
-        choices: [
-          { id: 'planet', label: 'Planet', helper: 'pppp-lanet! 🪐', art: 'planet' },
-          { id: 'jump', label: 'Jump', helper: 'jjjj-ump! 🦘', art: 'jump' },
-          { id: 'ship', label: 'Ship', helper: 'ssss-hip! 🚀', art: 'ship' },
-        ],
-      },
-      {
-        id: 'letter-match-a',
-        moduleId: 'letters',
-        type: 'letter-choice',
-        title: 'Big and Little A 🍎',
-        storyPrompt: 'Zibi finds a big sister letter A and needs to find her little brother letter helper.',
-        rewardName: 'Alphabet Seed',
-        prompt: 'Which little letter matches the big sister A?',
-        correctChoiceId: 'a',
-        successPrompt: 'Fantastic! A and a are letter buddies!',
-        retryPrompt: 'Find the round little a with a short tail.',
-        choices: [
-          { id: 'o', label: 'o', helper: 'little o', art: 'planet' },
-          { id: 'a', label: 'a', helper: 'little a', art: 'leaf' },
-          { id: 'p', label: 'p', helper: 'little p', art: 'rocket' },
-        ],
-      },
-      {
-        id: 'letter-match-s',
-        moduleId: 'letters',
-        type: 'letter-choice',
-        title: 'Big and Little S ⭐️',
-        storyPrompt: 'Zibi has a big curvy S. Help him match it with the little brother letter!',
-        rewardName: 'Super Star Seed',
-        prompt: 'Which little letter matches the big sister S?',
-        correctChoiceId: 's',
-        successPrompt: 'Super! S and s are curvy snake partners!',
-        retryPrompt: 'Find the curvy little s.',
-        choices: [
-          { id: 's', label: 's', helper: 'little s', art: 'star' },
-          { id: 't', label: 't', helper: 'little t', art: 'path' },
-          { id: 'm', label: 'm', helper: 'little m', art: 'moon' },
-        ],
-      },
-    ],
-  },
-  {
-    id: 'grammar',
-    title: 'Tiny Talk Town',
-    planet: 'Sentence Town',
-    mission: 'Help Zibi build tiny Earth ideas with pictures.',
-    colorClass: 'pink',
-    lessons: [
-      {
-        id: 'grammar-noun',
-        moduleId: 'grammar',
-        type: 'grammar-choice',
-        title: 'Naming Word (Noun) 📦',
-        storyPrompt: 'Zibi sees a floating space object. In Earth talk, the name of a thing is called a Noun!',
-        rewardName: 'Naming Seed',
-        prompt: 'Which word is the name of a thing (Noun)?',
-        correctChoiceId: 'rocket',
-        successPrompt: 'Perfect! Rocket is a thing word (Noun)! 🚀',
-        retryPrompt: 'Look for the shiny flying ship.',
-        choices: [
-          { id: 'rocket', label: 'Rocket', helper: 'A flying ship!', art: 'rocket' },
-          { id: 'jump', label: 'Jump', helper: 'An action word!', art: 'jump' },
-          { id: 'bright', label: 'Bright', helper: 'Descriptive word!', art: 'sun' },
-        ],
-      },
-      {
-        id: 'grammar-action',
-        moduleId: 'grammar',
-        type: 'grammar-choice',
-        title: 'Action Word (Verb) 🏃',
-        storyPrompt: 'Zibi wants to bounce up and down! Action words are called Verbs.',
-        rewardName: 'Action Seed',
-        prompt: 'Which word shows an action (Verb)?',
-        correctChoiceId: 'jump',
-        successPrompt: 'Whoosh! Jump is a doing word (Verb)! 🦘',
-        retryPrompt: 'Find the word that shows moving.',
-        choices: [
-          { id: 'ship', label: 'Ship', helper: 'A space thing!', art: 'ship' },
-          { id: 'jump', label: 'Jump', helper: 'An active bounce!', art: 'jump' },
-          { id: 'green', label: 'Green', helper: 'A color!', art: 'leaf' },
-        ],
-      },
-      {
-        id: 'grammar-sentence',
-        moduleId: 'grammar',
-        type: 'sentence-build',
-        title: 'First Message 🪐',
-        storyPrompt: "Zibi wants to tell you he can bounce! Let's build his sentence.",
-        rewardName: 'Message Seed',
-        prompt: 'Tap the word blocks in order to say "Zibi can fly!"',
-        tiles: ['fly', 'Zibi', 'can'],
-        correctSequence: ['Zibi', 'can', 'fly'],
-        successPrompt: 'Amazing! "Zibi can fly!" is a real sentence!',
-        retryPrompt: 'Start with Zibi, then can, then fly.',
-      },
-      {
-        id: 'grammar-sentence-2',
-        moduleId: 'grammar',
-        type: 'sentence-build',
-        title: 'Space Sight 🌙',
-        storyPrompt: "Let's build a sentence to show what Zibi sees in the sky!",
-        rewardName: 'Sky Seed',
-        prompt: 'Tap the word blocks to make "Zibi sees the moon!"',
-        tiles: ['sees', 'moon', 'the', 'Zibi'],
-        correctSequence: ['Zibi', 'sees', 'the', 'moon'],
-        successPrompt: 'Brilliant! "Zibi sees the moon!" is a perfect sentence!',
-        retryPrompt: 'Tap who first (Zibi), then sees, then the, then moon.',
-      },
-    ],
-  },
-  writingModule,
-];
 
 const EMPTY_VOICE: VoiceSnapshot = {
   soundClass: 'quiet',
@@ -375,10 +66,6 @@ function playSoundEffect(type: 'success' | 'fail') {
   }
 }
 
-function cleanSpeech(text: string) {
-  return text.toLowerCase().replace(/[^a-z]/g, '');
-}
-
 function isPhonicsLesson(lesson: Lesson): lesson is PhonicsLesson {
   return lesson.type === 'phonics';
 }
@@ -393,21 +80,6 @@ function isSentenceLesson(lesson: Lesson): lesson is SentenceLesson {
 
 function isWritingLesson(lesson: Lesson): lesson is WritingLesson {
   return lesson.type === 'writing';
-}
-
-function getSoundLabel(soundClass: SoundClass) {
-  switch (soundClass) {
-    case 'hissy':
-      return 'hissy air';
-    case 'open':
-      return 'open voice';
-    case 'pop':
-      return 'quick pop';
-    case 'voice':
-      return 'voice';
-    default:
-      return 'quiet';
-  }
 }
 
 function App() {
@@ -425,6 +97,8 @@ function App() {
   const [sparkles, setSparkles] = useState<{ id: number; emoji: string; x: number; y: number; scale: number }[]>([]);
 
   const bestVoiceRef = useRef<VoiceSnapshot>(EMPTY_VOICE);
+  const recognitionRef = useRef<any>(null);
+  const recognitionTranscriptRef = useRef<string>('');
 
   const { isListening, isSupported, error: micError, startRecording, stopRecording, setOnChunk } = useMicrophone();
   const { soundClass, energy, confidence, analyze, reset } = useLiveVoiceAnalyzer();
@@ -465,8 +139,14 @@ function App() {
   useEffect(() => {
     const checkServer = async () => {
       try {
-        const res = await fetch('http://127.0.0.1:8080/inference', { method: 'POST' });
-        setIsServerConnected(res.ok || res.status === 400);
+        const controller = new AbortController();
+        const id = window.setTimeout(() => controller.abort(), 1200);
+        const res = await fetch('http://127.0.0.1:8080/inference', {
+          method: 'OPTIONS',
+          signal: controller.signal,
+        });
+        window.clearTimeout(id);
+        setIsServerConnected(res.ok || [400, 404, 405].includes(res.status));
       } catch {
         setIsServerConnected(false);
       }
@@ -550,6 +230,39 @@ function App() {
     setHeardText('');
     reset();
 
+    // Start browser SpeechRecognition if available
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      try {
+        const rec = new SpeechRecognition();
+        rec.continuous = false;
+        rec.interimResults = false;
+        rec.lang = 'en-US';
+        
+        let localTranscript = '';
+        rec.onresult = (event: any) => {
+          const result = event.results[event.results.length - 1];
+          if (result && result[0]) {
+            localTranscript = result[0].transcript;
+            recognitionTranscriptRef.current = localTranscript;
+            console.log('Browser SpeechRecognition heard:', localTranscript);
+          }
+        };
+        rec.onerror = (event: any) => {
+          console.warn('Browser SpeechRecognition error:', event.error);
+        };
+        rec.onend = () => {
+          console.log('Browser SpeechRecognition ended');
+        };
+        
+        recognitionTranscriptRef.current = '';
+        recognitionRef.current = rec;
+        rec.start();
+      } catch (e) {
+        console.error('Failed to start browser SpeechRecognition:', e);
+      }
+    }
+
     const started = await startRecording();
     if (started) {
       setLessonStatus('recording');
@@ -565,6 +278,14 @@ function App() {
     setLessonStatus('checking');
     setFeedbackText('Zibi is checking the translator.');
 
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch (e) {
+        console.error('Failed to stop browser SpeechRecognition:', e);
+      }
+    }
+
     const samples = await stopRecording();
     if (micError) {
       setLessonStatus('error');
@@ -574,69 +295,100 @@ function App() {
     }
 
     if (!samples || samples.length === 0) {
-      setLessonStatus('error');
+      setLessonStatus('retry');
       setFeedbackText("Zibi could not hear anything. Try once more.");
       playSoundEffect('fail');
       return;
     }
 
-    const minimumSamples = activeLesson.kind === 'word' ? 5000 : 1800;
-    if (samples.length < minimumSamples) {
-      setLessonStatus('retry');
-      setFeedbackText('That was very quick. Hold the sound a little longer.');
-      playSoundEffect('fail');
-      return;
-    }
+    if (activeLesson.kind === 'word') {
+      if (!isServerConnected) {
+        // Wait briefly for onresult event if needed
+        await new Promise((resolve) => setTimeout(resolve, 800));
+        const transcript = recognitionTranscriptRef.current.trim();
+        if (transcript) {
+          const result = scoreWordAttempt(activeLesson, transcript);
+          setHeardText(transcript);
+          if (result.success) {
+            markLessonComplete(activeLesson);
+            setLessonStatus('success');
+            setFeedbackText(result.message);
+            playSoundEffect('success');
+            triggerExplosion();
+          } else {
+            setLessonStatus('retry');
+            setFeedbackText(result.message);
+            playSoundEffect('fail');
+          }
+          return;
+        }
 
-    let transcript = '';
-    let whisperFailed = false;
+        setLessonStatus('error');
+        setFeedbackText('Whisper lab offline. Start the local Whisper server, or try speaking clearly using browser speech recognition.');
+        playSoundEffect('fail');
+        return;
+      }
 
-    if (isServerConnected) {
       try {
         const timeoutPromise = new Promise<never>((_, reject) => setTimeout(() => reject(new Error('Timeout')), 8000));
-        transcript = await Promise.race([checkWithWhisper(samples), timeoutPromise]) as string;
-        setHeardText(transcript || getSoundLabel(bestVoiceRef.current.soundClass as SoundClass));
-      } catch {
-        whisperFailed = true;
-        setIsServerConnected(false);
-      }
-    }
+        const transcript = await Promise.race([checkWithWhisper(samples), timeoutPromise]) as string;
+        const result = scoreWordAttempt(activeLesson, transcript);
+        setHeardText(transcript || getSoundLabel(bestVoiceRef.current.soundClass));
 
-    if ((!isServerConnected || whisperFailed) && activeLesson.kind === 'word') {
-      setLessonStatus('error');
-      setFeedbackText('Whisper is offline. Start the local server to check Earth words.');
-      playSoundEffect('fail');
+        if (result.success) {
+          markLessonComplete(activeLesson);
+          setLessonStatus('success');
+          setFeedbackText(result.message);
+          playSoundEffect('success');
+          triggerExplosion();
+        } else {
+          setLessonStatus('retry');
+          setFeedbackText(result.message);
+          playSoundEffect('fail');
+        }
+      } catch {
+        // Fallback to browser SpeechRecognition if fetch failed
+        await new Promise((resolve) => setTimeout(resolve, 800));
+        const transcript = recognitionTranscriptRef.current.trim();
+        if (transcript) {
+          const result = scoreWordAttempt(activeLesson, transcript);
+          setHeardText(transcript);
+          if (result.success) {
+            markLessonComplete(activeLesson);
+            setLessonStatus('success');
+            setFeedbackText(result.message);
+            playSoundEffect('success');
+            triggerExplosion();
+            return;
+          }
+        }
+        
+        setIsServerConnected(false);
+        setLessonStatus('error');
+        setFeedbackText('Whisper lab offline. Start the local Whisper server to check Earth words.');
+        playSoundEffect('fail');
+      }
       return;
     }
 
-    const success = gradePhonics(activeLesson, transcript);
-    if (success) {
+    const result = scorePhonemeAttempt({
+      lesson: activeLesson,
+      samples,
+      bestVoice: bestVoiceRef.current,
+    });
+    setHeardText(result.heardLabel ?? getSoundLabel(bestVoiceRef.current.soundClass));
+
+    if (result.success) {
       markLessonComplete(activeLesson);
       setLessonStatus('success');
-      setFeedbackText(`Yes. Zibi learned ${activeLesson.displayText}.`);
+      setFeedbackText(result.message);
       playSoundEffect('success');
       triggerExplosion();
     } else {
       setLessonStatus('retry');
-      setFeedbackText(transcript ? `Zibi heard "${transcript}". ${activeLesson.retryPrompt}` : activeLesson.retryPrompt);
+      setFeedbackText(result.message);
       playSoundEffect('fail');
     }
-  };
-
-  const gradePhonics = (lesson: PhonicsLesson, transcript: string) => {
-    const cleanTranscript = cleanSpeech(transcript);
-    const transcriptSuccess = lesson.successMatches.some(match => {
-      const cleanMatch = cleanSpeech(match);
-      if (lesson.kind === 'sound') return cleanTranscript.includes(cleanMatch);
-      return cleanTranscript === cleanMatch || cleanTranscript.includes(cleanMatch);
-    });
-
-    const voiceSuccess = lesson.kind === 'sound'
-      && !!lesson.expectedSoundClass
-      && bestVoiceRef.current.soundClass === lesson.expectedSoundClass
-      && bestVoiceRef.current.score > 0.015;
-
-    return transcriptSuccess || voiceSuccess;
   };
 
   const checkWithWhisper = async (samples: Float32Array) => {
@@ -646,7 +398,7 @@ function App() {
     formData.append('file', wavBlob, 'earthlingo.wav');
     formData.append('response_format', 'json');
 
-    const response = await fetch('http://127.0.0.1:8080/inference', {
+    const response = await fetch(`http://127.0.0.1:8080/inference?word=${encodeURIComponent(activeLesson.targetText)}`, {
       method: 'POST',
       body: formData,
     });

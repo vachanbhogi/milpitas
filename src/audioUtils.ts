@@ -242,15 +242,15 @@ export function playSynthesizedPhonics(target: string): void {
   };
 
   // Dispatch play events
-  if (cleanTarget === 's' || cleanTarget === 'ssss') {
+  if (cleanTarget === 's' || cleanTarget === 'ssss' || cleanTarget === '/s/') {
     playS();
-  } else if (cleanTarget === 'm' || cleanTarget === 'mmmm') {
+  } else if (cleanTarget === 'm' || cleanTarget === 'mmmm' || cleanTarget === '/m/') {
     playM();
-  } else if (cleanTarget === 'a' || cleanTarget === 'aaa') {
+  } else if (cleanTarget === 'a' || cleanTarget === 'aaa' || cleanTarget === '/æ/' || cleanTarget === '/a/') {
     playA();
-  } else if (cleanTarget === 't') {
+  } else if (cleanTarget === 't' || cleanTarget === '/t/') {
     playT();
-  } else if (cleanTarget === 'p') {
+  } else if (cleanTarget === 'p' || cleanTarget === '/p/') {
     playP();
   } else if (cleanTarget === 'sat') {
     playS(0, 0.35);

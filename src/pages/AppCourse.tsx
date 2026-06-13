@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { MascotScene } from '../components/MascotScene';
 import { PictureBadge } from '../components/PictureBadge';
 import { playSynthesizedPhonics } from '../audioUtils';
-import { COURSE_MODULES as REAL_COURSE_MODULES } from '../App';
+import { COURSE_MODULES as REAL_COURSE_MODULES } from '../course/courseModules';
 import {
   type Lesson,
   type CourseModule,
@@ -14,6 +14,26 @@ import {
   type WritingLesson,
   type VoiceSnapshot
 } from '../types';
+
+type HomePlanetNode = {
+  id: 'home-planet';
+  title: string;
+  planet: string;
+  colorClass: string;
+  mission: string;
+  lessons: [];
+};
+
+type PathNode = CourseModule | HomePlanetNode;
+
+const HOME_PLANET_NODE: HomePlanetNode = {
+  id: 'home-planet',
+  title: 'Mumble Home 🪐',
+  planet: 'Mumble Home Planet',
+  colorClass: 'violet',
+  mission: 'Welcome home, Zibi! Planet reached.',
+  lessons: [],
+};
 
 interface AppCourseProps {
   completedLessons: Set<string>;
@@ -74,79 +94,14 @@ function CourseMap({
   onOpenRewards,
   onRestart,
 }: AppCourseProps) {
-  const COURSE_MODULES = [
-    {
-      id: 'phonics' as ModuleId,
-      title: 'Sound Safari',
-      planet: 'Echo Planet',
-      mission: 'Teach Zibi the Earth sounds that wake up words.',
-      colorClass: 'yellow',
-      lessons: [
-        { id: 'sound-s', title: 'Star Air ⭐️' },
-        { id: 'sound-m', title: 'Moon Hum 🌙' },
-        { id: 'sound-a', title: 'Open Air 🐥' },
-        { id: 'sound-t', title: 'Tap Button ⏰' },
-        { id: 'sound-p', title: 'Pop Pod 🫧' },
-        { id: 'word-sat', title: 'Ship Seat 🚀' },
-        { id: 'word-mat', title: 'Landing Mat 🛬' },
-        { id: 'word-pat', title: 'Repair Pat 👋' },
-      ],
-    },
-    {
-      id: 'letters' as ModuleId,
-      title: 'Letter Lagoon',
-      planet: 'Glow Letter Lagoon',
-      colorClass: 'blue',
-      mission: 'Match Earth sounds to big bright letters.',
-      lessons: [
-        { id: 'letter-s', title: 'Find S Sound 🐍' },
-        { id: 'letter-m', title: 'Find M Sound 🌙' },
-        { id: 'letter-p', title: 'Find P Sound 🪐' },
-        { id: 'letter-match-a', title: 'Big and Little A 🍎' },
-        { id: 'letter-match-s', title: 'Big and Little S ⭐️' },
-      ],
-    },
-    {
-      id: 'grammar' as ModuleId,
-      title: 'Tiny Talk Town',
-      planet: 'Sentence Town',
-      colorClass: 'pink',
-      mission: 'Help Zibi build tiny Earth ideas with pictures.',
-      lessons: [
-        { id: 'grammar-noun', title: 'Naming Noun 📦' },
-        { id: 'grammar-action', title: 'Action Verb 🏃' },
-        { id: 'grammar-sentence', title: 'First Message 🪐' },
-        { id: 'grammar-sentence-2', title: 'Space Sight 🌙' },
-      ],
-    },
-    {
-      id: 'writing' as ModuleId,
-      title: 'Scribble Spaceship',
-      planet: 'Ink Nebula',
-      colorClass: 'violet',
-      mission: 'Write Earth words using the spaceship stylus.',
-      lessons: [
-        { id: 'write-sun', title: 'Write SUN ☀️' },
-        { id: 'write-moon', title: 'Write MOON 🌕' },
-        { id: 'write-star', title: 'Write STAR ⭐' },
-      ],
-    },
-    {
-      id: 'home-planet' as any,
-      title: 'Mumble Home 🪐',
-      planet: 'Mumble Home Planet',
-      colorClass: 'violet',
-      mission: 'Welcome home, Zibi! Planet reached.',
-      lessons: [],
-    },
-  ];
+  const courseNodes: PathNode[] = [...REAL_COURSE_MODULES, HOME_PLANET_NODE];
 
   // Detect Zibi's current position
-  const activePlanetIndex = COURSE_MODULES.slice(0, 4).findIndex(m => {
+  const activePlanetIndex = REAL_COURSE_MODULES.findIndex(m => {
     const moduleDone = m.lessons.filter(l => completedLessons.has(l.id)).length;
     return moduleDone < m.lessons.length;
   });
-  const currentActiveModuleId = activePlanetIndex !== -1 ? COURSE_MODULES[activePlanetIndex].id : 'home-planet';
+  const currentActiveModuleId = activePlanetIndex !== -1 ? REAL_COURSE_MODULES[activePlanetIndex].id : 'home-planet';
   const hasUnlockedHome = completedCount >= totalLessons;
 
   return (
@@ -210,7 +165,7 @@ function CourseMap({
         <div className="flight-path-container">
           <div className="flight-path-line" />
           
-          {COURSE_MODULES.map((module, index) => {
+          {courseNodes.map((module, index) => {
             const side = index % 2 === 0 ? 'left' : 'right';
             const isHomePlanet = module.id === 'home-planet';
             const isLocked = isHomePlanet && !hasUnlockedHome;
@@ -253,11 +208,7 @@ function CourseMap({
                               className={`path-dot ${completedLessons.has(lesson.id) ? 'is-complete' : ''}`}
                               type="button"
                               onClick={() => {
-                                const realModule = REAL_COURSE_MODULES.find(m => m.id === module.id);
-                                const realLesson = realModule?.lessons.find(l => l.id === lesson.id);
-                                if (realLesson) {
-                                  onOpenLesson(realLesson);
-                                }
+                                onOpenLesson(lesson);
                               }}
                               title={`Start lesson: ${lesson.title}`}
                             />
@@ -573,7 +524,7 @@ function PhonicsMission({
         )}
         {status === 'recording' && (
           <button className="primary-action stop-action" type="button" onClick={onStopRecording}>
-            Stop And Check
+            Check My Sound
           </button>
         )}
         {status === 'checking' && (

@@ -1,11 +1,11 @@
-import { motion } from 'framer-motion';
+import { motion, type TargetAndTransition } from 'framer-motion';
 
 interface MascotSceneProps {
   progress: number;
   mood: 'idle' | 'listening' | 'happy' | 'thinking' | 'retry' | 'launch';
 }
 
-const moodAnimations: Record<string, { alien: object; ship: object }> = {
+const moodAnimations: Record<string, { alien: TargetAndTransition; ship: TargetAndTransition }> = {
   idle: {
     alien: { scale: 1, rotate: 0, y: 0 },
     ship: { y: 0, rotate: 10 },

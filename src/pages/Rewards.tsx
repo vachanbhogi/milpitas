@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { motion, type Variants } from 'framer-motion';
 import { MascotScene } from '../components/MascotScene';
 import { PictureBadge } from '../components/PictureBadge';
 import { COURSE_MODULES } from '../course/courseModules';
@@ -14,14 +14,21 @@ interface RewardsProps {
 }
 
 const springTap = { type: 'spring' as const, stiffness: 500, damping: 20 };
-const stagger = { staggerChildren: 0.08 };
-const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.23, 1, 0.32, 1] } },
+const stagger: Variants = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: 0.08,
+    },
+  },
 };
-const fadeUpFast = {
+const fadeUp: Variants = {
+  hidden: { opacity: 0, y: 24 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.23, 1, 0.32, 1] as [number, number, number, number] } },
+};
+const fadeUpFast: Variants = {
   hidden: { opacity: 0, y: 14 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: [0.23, 1, 0.32, 1] } },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: [0.23, 1, 0.32, 1] as [number, number, number, number] } },
 };
 
 export function Rewards({

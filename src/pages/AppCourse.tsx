@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { MascotScene } from '../components/MascotScene';
 import { PictureBadge } from '../components/PictureBadge';
 import { playSynthesizedPhonics } from '../audioUtils';
@@ -18,14 +18,21 @@ import {
 } from '../types';
 
 const springTap = { type: 'spring' as const, stiffness: 500, damping: 20 };
-const stagger = { staggerChildren: 0.08 };
-const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.23, 1, 0.32, 1] } },
+const stagger: Variants = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: 0.08,
+    },
+  },
 };
-const fadeUpFast = {
+const fadeUp: Variants = {
+  hidden: { opacity: 0, y: 24 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.23, 1, 0.32, 1] as [number, number, number, number] } },
+};
+const fadeUpFast: Variants = {
   hidden: { opacity: 0, y: 14 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: [0.23, 1, 0.32, 1] } },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: [0.23, 1, 0.32, 1] as [number, number, number, number] } },
 };
 
 type HomePlanetNode = {
@@ -654,10 +661,13 @@ function PhonicsMission({
           )}
           {status === 'recording' && (
             <motion.button key="stop" className="primary-action stop-action" type="button" onClick={onStopRecording}
-              initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
+              initial={{ opacity: 0, scale: 0.9 }} exit={{ opacity: 0, scale: 0.9 }}
               whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.96 }}
-              animate={{ scale: [1, 1.03, 1] }}
-              transition={{ duration: 0.8, repeat: Infinity }}>
+              animate={{ opacity: 1, scale: [1, 1.03, 1] }}
+              transition={{
+                opacity: { duration: 0.3 },
+                scale: { duration: 0.8, repeat: Infinity, ease: 'easeInOut' }
+              }}>
               Check My Sound
             </motion.button>
           )}

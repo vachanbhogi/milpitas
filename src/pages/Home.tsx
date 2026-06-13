@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { MascotScene } from '../components/MascotScene';
 import { playSynthesizedPhonics } from '../audioUtils';
 
@@ -10,14 +10,21 @@ interface HomeProps {
 
 const springHover = { type: 'spring' as const, stiffness: 300, damping: 12 };
 const springTap = { type: 'spring' as const, stiffness: 500, damping: 20 };
-const stagger = { staggerChildren: 0.07 };
-const fadeUp = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.23, 1, 0.32, 1] } },
+const stagger: Variants = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: 0.07,
+    },
+  },
 };
-const fadeUpFast = {
+const fadeUp: Variants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.23, 1, 0.32, 1] as [number, number, number, number] } },
+};
+const fadeUpFast: Variants = {
   hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.23, 1, 0.32, 1] } },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.23, 1, 0.32, 1] as [number, number, number, number] } },
 };
 
 export function Home({ isServerConnected, onOpenApp }: HomeProps) {

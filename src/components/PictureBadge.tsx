@@ -1,11 +1,6 @@
 import { type PictureArt } from '../types';
 
-interface PictureBadgeProps {
-  art: PictureArt;
-  label: string;
-}
-
-export function PictureBadge({ art, label }: PictureBadgeProps) {
+export function PictureBadge({ art, label }: { art: PictureArt; label: string }) {
   return (
     <span className={`picture-badge art-${art}`} role="img" aria-label={label}>
       <span />

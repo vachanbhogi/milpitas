@@ -27,5 +27,6 @@ dist-ssr
 /whisper.cpp/
 *.bin
 
-# ai
+# embedded agent repos
+.agents/agency-agents/
 .agent/

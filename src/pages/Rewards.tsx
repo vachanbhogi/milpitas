@@ -1,13 +1,14 @@
 import { MascotScene } from '../components/MascotScene';
 import { PictureBadge } from '../components/PictureBadge';
 import { COURSE_MODULES } from '../App';
-import { type ModuleId } from '../types';
+import { type ModuleId, type Lesson } from '../types';
 
 interface RewardsProps {
   completedCount: number;
   totalLessons: number;
   completedLessons: Set<string>;
   onOpenModule: (moduleId: ModuleId) => void;
+  onOpenLesson: (lesson: Lesson) => void;
   onRestart: () => void;
   shipProgress: number;
 }
@@ -17,6 +18,7 @@ export function Rewards({
   totalLessons,
   completedLessons,
   onOpenModule,
+  onOpenLesson,
   onRestart,
   shipProgress,
 }: RewardsProps) {
@@ -75,9 +77,12 @@ export function Rewards({
                     </strong>
                     <div className="mini-progress-dots" style={{ justifyContent: 'center', marginTop: '8px' }}>
                       {module.lessons.map(lesson => (
-                        <span 
+                        <button 
                           key={lesson.id} 
-                          className={`path-dot ${completedLessons.has(lesson.id) ? 'is-complete' : ''}`} 
+                          className={`path-dot ${completedLessons.has(lesson.id) ? 'is-complete' : ''}`}
+                          type="button"
+                          onClick={() => onOpenLesson(lesson)}
+                          title={`Start lesson: ${lesson.title}`}
                         />
                       ))}
                     </div>

@@ -527,7 +527,7 @@ function App() {
     const firstOpenLesson = targetModule.lessons.find(lesson => !completedLessons.has(lesson.id)) ?? targetModule.lessons[0];
     setActiveLessonId(firstOpenLesson.id);
     resetLessonInteraction(firstOpenLesson);
-    setView('course');
+    setView('lesson');
   };
 
   const goToLesson = (lesson: Lesson) => {
@@ -816,6 +816,7 @@ function App() {
           totalLessons={totalLessons}
           completedLessons={completedLessons}
           onOpenModule={openModule}
+          onOpenLesson={goToLesson}
           onRestart={restartCourse}
           shipProgress={shipProgress}
         />

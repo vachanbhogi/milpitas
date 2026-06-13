@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { MascotScene } from '../components/MascotScene';
 import { PictureBadge } from '../components/PictureBadge';
 import { playSynthesizedPhonics } from '../audioUtils';
+import { COURSE_MODULES as REAL_COURSE_MODULES } from '../App';
 import {
   type Lesson,
   type CourseModule,
@@ -69,6 +70,7 @@ function CourseMap({
   allDone,
   isServerConnected,
   onOpenModule,
+  onOpenLesson,
   onOpenRewards,
   onRestart,
 }: AppCourseProps) {
@@ -246,9 +248,18 @@ function CourseMap({
                         <span className="planet-node-progress">{moduleDoneCount}/{totalInModule} completed</span>
                         <div className="mini-progress-dots">
                           {module.lessons.map(lesson => (
-                            <span 
+                            <button 
                               key={lesson.id} 
-                              className={`path-dot ${completedLessons.has(lesson.id) ? 'is-complete' : ''}`} 
+                              className={`path-dot ${completedLessons.has(lesson.id) ? 'is-complete' : ''}`}
+                              type="button"
+                              onClick={() => {
+                                const realModule = REAL_COURSE_MODULES.find(m => m.id === module.id);
+                                const realLesson = realModule?.lessons.find(l => l.id === lesson.id);
+                                if (realLesson) {
+                                  onOpenLesson(realLesson);
+                                }
+                              }}
+                              title={`Start lesson: ${lesson.title}`}
                             />
                           ))}
                         </div>

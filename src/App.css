@@ -1,6 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Outfit:wght@400;600;700;800;900&display=swap');
+
 :root {
   --ink: #172033;
-  --ink-soft: #42506d;
+  --ink-soft: #2c3a58;
   --paper: #fffaf0;
   --surface: #ffffff;
   --line: #172033;
@@ -12,7 +14,8 @@
   --violet: #8677ff;
   --shadow: 0 16px 0 rgba(23, 32, 51, 0.12);
   --radius-card: 8px;
-  --font-main: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-display: 'Fredoka', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-main: 'Outfit', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
 }
 
@@ -30,6 +33,17 @@ body {
     radial-gradient(circle at 86% 18%, rgba(93, 215, 255, 0.4), transparent 20rem),
     linear-gradient(180deg, #f6fcff 0%, #fff7de 58%, #f0fff5 100%);
   font-family: var(--font-main);
+}
+
+h1, h2, h3,
+.brand-button strong,
+.star-counter,
+.primary-action,
+.secondary-action,
+.choice-card strong,
+.sentence-slots span,
+.tile-grid button {
+  font-family: var(--font-display);
 }
 
 button {
@@ -287,13 +301,26 @@ button:focus-visible {
   opacity: 0.6;
 }
 
+.primary-action:not(:disabled):hover,
+.secondary-action:not(:disabled):hover,
+.module-button:hover,
+.back-button:hover,
+.clear-action:hover,
+.choice-card:hover,
+.tile-grid button:hover {
+  transform: scale(1.05) translateY(-2px);
+  box-shadow: 7px 7px 0 var(--line);
+}
+
 .primary-action:not(:disabled):active,
 .secondary-action:not(:disabled):active,
 .module-button:active,
 .back-button:active,
-.clear-action:active {
-  transform: translate(4px, 4px);
-  box-shadow: 1px 1px 0 var(--line);
+.clear-action:active,
+.choice-card:active,
+.tile-grid button:active {
+  transform: scale(0.96) translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--line);
 }
 
 .status-strip {
@@ -414,8 +441,8 @@ button:focus-visible {
 }
 
 .mini-progress button {
-  width: 28px;
-  aspect-ratio: 1;
+  width: 44px;
+  height: 44px;
   border: 3px solid var(--line);
   border-radius: 50%;
   background: #ffffff;
@@ -736,6 +763,7 @@ button:focus-visible {
 .tile-grid button {
   background: var(--yellow);
   box-shadow: 4px 4px 0 var(--line);
+  transition: transform 150ms ease, box-shadow 150ms ease;
 }
 
 .tile-grid button.is-used {
@@ -1373,5 +1401,817 @@ button:focus-visible {
 
   .mascot-scene {
     min-height: 300px;
+  }
+}
+
+/* ==========================================================================
+   Interactive Upgrades (Zibi Cabin, Phonics Synthesizer & SE Pitch Deck)
+   ========================================================================== */
+
+/* Lesson Layout Grid */
+.lesson-grid {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 20px;
+  align-items: start;
+}
+
+.mascot-side-panel {
+  display: flex;
+  flex-direction: column;
+  border: 3px solid var(--line);
+  border-radius: var(--radius-card);
+  background: linear-gradient(180deg, #d9f6ff, rgba(255, 255, 255, 0.96) 60%);
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+
+.mascot-panel-header {
+  text-align: center;
+  border-bottom: 3px solid var(--line);
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+}
+
+.mascot-panel-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 1000;
+}
+
+.cabin-status {
+  margin: 4px 0 0;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+/* Clickable Sound Stage */
+.clickable-sound-stage {
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+
+.clickable-sound-stage:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 0 rgba(23, 32, 51, 0.15);
+}
+
+.clickable-sound-stage .target-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* --- Zibi Live Mood Heuristics & Animations --- */
+.alien {
+  transform-origin: bottom center;
+}
+
+/* Listening Mood: Antennas wiggle and glow */
+.mascot-scene.mood-listening .antenna.left {
+  animation: wiggleAntLeft 250ms ease-in-out infinite alternate;
+}
+
+.mascot-scene.mood-listening .antenna.right {
+  animation: wiggleAntRight 250ms ease-in-out infinite alternate;
+}
+
+.mascot-scene.mood-listening .antenna::before {
+  background: var(--green) !important;
+  box-shadow: 0 0 15px var(--green), 0 0 5px var(--green) inset;
+}
+
+.mascot-scene.mood-listening .eye::before {
+  transform: scale(1.25);
+  transition: transform 150ms ease;
+}
+
+/* Thinking Mood: Roll eyes, glow orange */
+.mascot-scene.mood-thinking .eye::before {
+  animation: lookingAround 1.8s ease-in-out infinite;
+}
+
+.mascot-scene.mood-thinking .antenna::before {
+  animation: glowPulse 1s ease-in-out infinite alternate;
+}
+
+/* Happy Mood: Jump / Bounce and smile */
+.mascot-scene.mood-happy .alien {
+  animation: childBounce 550ms ease-out infinite alternate;
+}
+
+.mascot-scene.mood-happy .smile {
+  height: 26%;
+  border: 4px solid var(--line);
+  border-top: 0;
+  border-radius: 0 0 999px 999px;
+  background: #ff5080;
+}
+
+/* Retry Mood: Look confused, droop antenna, sad mouth */
+.mascot-scene.mood-retry .antenna.left {
+  transform: rotate(-58deg) translateY(6px);
+  transform-origin: bottom center;
+}
+
+.mascot-scene.mood-retry .smile {
+  top: 56%;
+  height: 4px;
+  border-bottom: 0;
+  border-top: 5px solid var(--line);
+  border-radius: 0;
+  width: 24%;
+}
+
+.mascot-scene.mood-retry .eye {
+  transform: scaleY(0.72);
+}
+
+/* Keyframes */
+@keyframes wiggleAntLeft {
+  0% { transform: rotate(-22deg); }
+  100% { transform: rotate(-45deg); }
+}
+
+@keyframes wiggleAntRight {
+  0% { transform: rotate(22deg); }
+  100% { transform: rotate(45deg); }
+}
+
+@keyframes lookingAround {
+  0%, 100% { transform: translate(0, 0); }
+  33% { transform: translate(-3px, -1px); }
+  66% { transform: translate(3px, -1px); }
+}
+
+@keyframes glowPulse {
+  0% { background: var(--yellow); box-shadow: none; }
+  100% { background: var(--orange); box-shadow: 0 0 12px var(--orange); }
+}
+
+@keyframes childBounce {
+  0% { transform: translateY(0) scale(1); }
+  100% { transform: translateY(-20px) scale(0.96, 1.04); }
+}
+
+/* ==========================================================================
+   Sales Engineering Pitch Component Styles
+   ========================================================================== */
+.pitch-cover {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: 30px;
+  align-items: center;
+}
+
+.pitch-tagline {
+  font-size: 1.3rem !important;
+  font-weight: 800 !important;
+  margin: 12px 0 20px !important;
+}
+
+/* Problem & Outcome Split */
+.pitch-problem-outcome {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.pitch-card {
+  border: 3px solid var(--line);
+  border-radius: var(--radius-card);
+  padding: 24px;
+  background: #ffffff;
+  box-shadow: var(--shadow);
+}
+
+.card-badge {
+  display: inline-block;
+  padding: 6px 10px;
+  border: 3px solid var(--line);
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  font-weight: 1000;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.badge-red { background: #ffebeb; color: #cc3333; }
+.badge-green { background: #e9fff0; color: #228844; }
+
+/* Interactive Synth Lab */
+.pitch-sound-lab {
+  border: 3px solid var(--line);
+  border-radius: var(--radius-card);
+  padding: 30px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: var(--shadow);
+}
+
+.pitch-sound-lab h2 {
+  margin: 0;
+  font-size: 2.2rem;
+}
+
+.pitch-sound-lab .subtitle {
+  margin: 6px 0 20px;
+  color: var(--ink-soft);
+}
+
+.synth-buttons-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.synth-demo-btn {
+  border: 3px solid var(--line);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  padding: 16px 12px;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  box-shadow: 4px 4px 0 var(--line);
+  transition: transform 100ms ease, box-shadow 100ms ease;
+}
+
+.synth-demo-btn:hover {
+  background: var(--yellow);
+}
+
+.synth-demo-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--line);
+}
+
+.synth-demo-btn strong {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.synth-label {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.synth-desc {
+  font-size: 0.7rem;
+  color: var(--ink-soft);
+  font-family: var(--font-mono);
+}
+
+/* Solution Architecture */
+.pitch-architecture {
+  border: 3px solid var(--line);
+  border-radius: var(--radius-card);
+  padding: 30px;
+  background: #ffffff;
+  box-shadow: var(--shadow);
+}
+
+.architecture-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.arch-item {
+  border: 2px solid var(--line);
+  border-radius: var(--radius-card);
+  padding: 18px;
+  background: #f8fbff;
+}
+
+.arch-item h3 {
+  margin: 0 0 8px;
+  font-size: 1.15rem;
+  font-weight: 950;
+}
+
+.arch-item p {
+  margin: 0;
+  font-size: 0.85rem !important;
+  line-height: 1.4 !important;
+}
+
+/* Judge Objection FAQs */
+.judge-faq-section {
+  border: 3px solid var(--line);
+  border-radius: var(--radius-card);
+  padding: 30px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: var(--shadow);
+}
+
+.faq-accordion {
+  display: grid;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.faq-item {
+  border: 3px solid var(--line);
+  border-radius: var(--radius-card);
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.faq-question {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  padding: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 900;
+  font-size: 1.1rem;
+  cursor: pointer;
+  text-align: left;
+}
+
+.faq-question:hover {
+  background: #fdfaf4;
+}
+
+.faq-toggle-icon {
+  font-size: 1.3rem;
+  font-family: var(--font-mono);
+}
+
+.faq-answer {
+  padding: 0 18px 18px;
+  border-top: 2px dashed var(--line);
+  background: #fcfdfe;
+}
+
+.faq-answer p {
+  margin: 12px 0 0;
+  font-size: 0.95rem !important;
+  line-height: 1.5 !important;
+  color: var(--ink-soft);
+}
+
+@media (max-width: 900px) {
+  .lesson-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .synth-buttons-grid,
+  .architecture-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .pitch-problem-outcome {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .synth-buttons-grid,
+  .architecture-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Sparkles overlay animation */
+@keyframes floatUp {
+  0% {
+    transform: translateY(100px) scale(0) rotate(0deg);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-120px) scale(1.2) rotate(25deg);
+    opacity: 0;
+  }
+}
+
+.sparkle-particle {
+  position: fixed;
+  font-size: 2.5rem;
+  pointer-events: none;
+  animation: floatUp 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+  z-index: 9999;
+}
+
+/* --- Space Orbit Flight Path --- */
+.flight-path-section {
+  margin-top: 40px;
+  padding: 30px 20px;
+  background: rgba(23, 32, 51, 0.02);
+  border: 3px solid var(--line);
+  border-radius: var(--radius-card);
+  position: relative;
+  overflow: hidden;
+}
+
+.flight-path-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  padding: 60px 0;
+  gap: 80px;
+}
+
+.flight-path-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 8px;
+  border-left: 6px dashed var(--line);
+  transform: translateX(-3px);
+  z-index: 1;
+}
+
+.path-node-wrap {
+  display: flex;
+  width: 100%;
+  max-width: 800px;
+  position: relative;
+  z-index: 2;
+  align-items: center;
+}
+
+.path-node-wrap.left {
+  justify-content: flex-start;
+  padding-right: 50%;
+}
+
+.path-node-wrap.right {
+  justify-content: flex-end;
+  padding-left: 50%;
+}
+
+.path-planet-bubble {
+  width: 290px;
+  border: 3px solid var(--line);
+  border-radius: 24px;
+  padding: 20px;
+  background: var(--surface);
+  box-shadow: 6px 6px 0 var(--line);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.color-yellow { background: #fffde6; }
+.color-blue { background: #e6f7ff; }
+.color-pink { background: #ffe6f2; }
+.color-violet { background: #f2e6ff; }
+
+.planet-details h3 {
+  margin: 10px 0 6px;
+  font-size: 1.4rem;
+}
+
+.planet-details p {
+  font-size: 0.88rem;
+  color: var(--ink-soft);
+  margin: 0 0 10px;
+  line-height: 1.35;
+}
+
+.planet-node-progress {
+  font-weight: 800;
+  font-size: 0.85rem;
+  background: var(--line);
+  color: white;
+  padding: 3px 8px;
+  border-radius: 999px;
+  display: inline-block;
+  margin-bottom: 8px;
+}
+
+.mini-progress-dots {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 12px;
+}
+
+.path-dot {
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--line);
+  border-radius: 50%;
+  background: white;
+}
+
+.path-dot.is-complete {
+  background: var(--green);
+}
+
+.start-planet-btn {
+  min-height: 38px !important;
+  font-size: 0.9rem !important;
+  padding: 0 16px !important;
+  box-shadow: 3px 3px 0 var(--line) !important;
+}
+
+/* Ship avatar indicator */
+.ship-avatar-indicator {
+  position: absolute;
+  font-size: 2.8rem;
+  z-index: 10;
+  top: 50%;
+  transform: translateY(-50%);
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+}
+
+.path-node-wrap.left .ship-avatar-indicator {
+  right: 42%;
+}
+
+.path-node-wrap.right .ship-avatar-indicator {
+  left: 42%;
+}
+
+.indicator-tooltip {
+  position: absolute;
+  top: -24px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.75rem;
+  font-weight: bold;
+  background: var(--yellow);
+  border: 2px solid var(--line);
+  padding: 1px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+/* Locked nodes */
+.path-node-wrap.locked {
+  opacity: 0.75;
+}
+
+.lock-milestone-text {
+  font-weight: bold;
+  font-size: 0.85rem;
+  color: #cc3333;
+}
+
+/* Milestone tracking */
+.milestone-badge {
+  background: #fffdf5;
+  border: 3px solid var(--line);
+  border-radius: 12px;
+  padding: 15px;
+  margin-top: 15px;
+  box-shadow: 4px 4px 0 var(--line);
+  text-align: left;
+}
+
+.milestone-subtext {
+  font-size: 0.85rem !important;
+  font-weight: normal !important;
+  margin-top: 4px !important;
+}
+
+.milestone-track {
+  height: 14px;
+  border: 3px solid var(--line);
+  border-radius: 999px;
+  background: white;
+  margin-top: 8px;
+  overflow: hidden;
+}
+
+.milestone-fill {
+  height: 100%;
+  background: var(--green);
+}
+
+/* Space Shop */
+.shop-section {
+  margin-top: 30px;
+  padding: 24px;
+  background: white;
+  border: 3px solid var(--line);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow);
+}
+
+.shop-subtitle {
+  font-size: 0.95rem;
+  color: var(--ink-soft);
+  margin-bottom: 20px;
+}
+
+.shop-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 30px;
+}
+
+.shop-card {
+  border: 3px solid var(--line);
+  border-radius: 16px;
+  padding: 18px;
+  background: #fcfdfe;
+  box-shadow: 5px 5px 0 var(--line);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.shop-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 7px 7px 0 var(--line);
+}
+
+.shop-card.bought {
+  background: #f0fff4;
+  opacity: 0.9;
+}
+
+.shop-emoji {
+  font-size: 3rem;
+  margin-bottom: 10px;
+}
+
+.shop-card h3 {
+  margin: 0 0 6px;
+  font-size: 1.25rem;
+}
+
+.shop-card p {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  margin: 0 0 16px;
+  line-height: 1.35;
+}
+
+.shop-action-row {
+  margin-top: auto;
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.price-tag {
+  font-weight: 800;
+  font-size: 0.95rem;
+  background: #ffd84d;
+  border: 2px solid var(--line);
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.buy-btn {
+  min-height: 36px !important;
+  font-size: 0.85rem !important;
+  padding: 0 12px !important;
+  box-shadow: 3px 3px 0 var(--line) !important;
+}
+
+/* Rainbow engine and Crown */
+@keyframes rainbowFlame {
+  0% { filter: hue-rotate(0deg); }
+  100% { filter: hue-rotate(360deg); }
+}
+
+.rainbow-flame-grad {
+  background: linear-gradient(180deg, #ff3366, #ff9933, #ffff33, #33cc66, #3399ff, #9933ff) !important;
+  animation: rainbowFlame 0.8s linear infinite !important;
+}
+
+.mascot-crown {
+  position: absolute;
+  top: -38px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 2.8rem;
+  z-index: 5;
+  filter: drop-shadow(0 2px 0 var(--line));
+  animation: floatCrown 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes floatCrown {
+  0% { transform: translateX(-50%) translateY(0); }
+  100% { transform: translateX(-50%) translateY(-6px); }
+}
+
+/* --- Galaxy Rewards Orbit Flight Path --- */
+.galaxy-map-section {
+  margin-top: 40px;
+  padding: 30px 20px;
+  background: rgba(23, 32, 51, 0.02);
+  border: 3px solid var(--line);
+  border-radius: var(--radius-card);
+  position: relative;
+  overflow: hidden;
+}
+
+.galaxy-path-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  padding: 60px 0;
+  gap: 80px;
+}
+
+.galaxy-path-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 8px;
+  border-left: 6px dashed var(--line);
+  transform: translateX(-3px);
+  z-index: 1;
+}
+
+.galaxy-node-wrap {
+  display: flex;
+  width: 100%;
+  max-width: 800px;
+  position: relative;
+  z-index: 2;
+  align-items: center;
+}
+
+.galaxy-node-wrap.left {
+  justify-content: flex-start;
+  padding-right: 50%;
+}
+
+.galaxy-node-wrap.right {
+  justify-content: flex-end;
+  padding-left: 50%;
+}
+
+.galaxy-planet-bubble {
+  width: 290px;
+  border: 3px solid var(--line);
+  border-radius: 24px;
+  padding: 20px;
+  background: var(--surface);
+  box-shadow: 6px 6px 0 var(--line);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease;
+}
+
+.galaxy-planet-bubble:hover {
+  transform: scale(1.05) translateY(-5px);
+  box-shadow: 8px 12px 0 var(--line);
+}
+
+.seed-collect-status {
+  font-weight: 800;
+  font-size: 0.85rem;
+  background: var(--line);
+  color: white;
+  padding: 3px 8px;
+  border-radius: 999px;
+  display: inline-block;
+  margin-top: 6px;
+  margin-bottom: 8px;
+}
+
+@media (max-width: 768px) {
+  .shop-grid {
+    grid-template-columns: 1fr;
+  }
+  .flight-path-line,
+  .galaxy-path-line {
+    left: 20px;
+  }
+  .path-node-wrap.left,
+  .path-node-wrap.right,
+  .galaxy-node-wrap.left,
+  .galaxy-node-wrap.right {
+    justify-content: flex-start;
+    padding-left: 50px;
+    padding-right: 0;
+  }
+  .path-node-wrap.left .ship-avatar-indicator,
+  .path-node-wrap.right .ship-avatar-indicator {
+    left: -10px;
   }
 }

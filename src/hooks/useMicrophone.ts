@@ -67,17 +67,18 @@ export function useMicrophone() {
     if (!worklet) return null
 
     return new Promise((resolve) => {
-      utteranceResolveRef.current = resolve
+      utteranceResolveRef.current = (audio) => {
+        streamRef.current?.getTracks().forEach(t => t.stop())
+        contextRef.current?.close()
+
+        streamRef.current = null
+        contextRef.current = null
+        workletNodeRef.current = null
+
+        setState(prev => ({ ...prev, isListening: false }))
+        resolve(audio)
+      }
       worklet.port.postMessage({ command: 'stop' })
-
-      streamRef.current?.getTracks().forEach(t => t.stop())
-      contextRef.current?.close()
-
-      streamRef.current = null
-      contextRef.current = null
-      workletNodeRef.current = null
-
-      setState(prev => ({ ...prev, isListening: false }))
     })
   }, [])
 

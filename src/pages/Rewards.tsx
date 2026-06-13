@@ -1,6 +1,6 @@
 import { MascotScene } from '../components/MascotScene';
 import { PictureBadge } from '../components/PictureBadge';
-import { COURSE_MODULES } from '../App';
+import { COURSE_MODULES } from '../course/courseModules';
 import { type ModuleId, type Lesson } from '../types';
 
 interface RewardsProps {

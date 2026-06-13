@@ -960,41 +960,6 @@ button:focus-visible {
   isolation: isolate;
 }
 
-.planet-orbit {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  border: 3px solid rgba(23, 32, 51, 0.16);
-  border-radius: 50%;
-  transform: rotate(-12deg);
-}
-
-.planet-orbit span {
-  position: absolute;
-  width: 42px;
-  aspect-ratio: 1;
-  border: 3px solid var(--line);
-  border-radius: 50%;
-}
-
-.planet-orbit span:nth-child(1) {
-  top: 14%;
-  left: 8%;
-  background: var(--yellow);
-}
-
-.planet-orbit span:nth-child(2) {
-  top: 10%;
-  right: 16%;
-  background: var(--pink);
-}
-
-.planet-orbit span:nth-child(3) {
-  bottom: 12%;
-  left: 18%;
-  background: var(--blue);
-}
-
 .ship-wrap {
   position: absolute;
   top: 12%;
@@ -1867,6 +1832,19 @@ button:focus-visible {
 }
 
 /* --- Space Orbit Flight Path --- */
+.orbit-heading {
+  font-size: 1.6rem;
+  text-align: center;
+  letter-spacing: 0.03em;
+}
+
+.path-subtitle {
+  text-align: center;
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+  margin: -6px 0 0;
+}
+
 .flight-path-section {
   margin-top: 40px;
   padding: 30px 20px;
@@ -1882,25 +1860,34 @@ button:focus-visible {
   flex-direction: column;
   align-items: center;
   position: relative;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
   padding: 60px 0;
   gap: 80px;
 }
 
-.flight-path-line {
+.flight-path-svg {
   position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 50%;
-  width: 8px;
-  border-left: 6px dashed var(--line);
-  transform: translateX(-3px);
+  inset: 0;
+  width: 100%;
+  height: 100%;
   z-index: 1;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.flight-path-curve {
+  stroke: var(--line);
+  stroke-width: 4;
+  stroke-dasharray: 10 8;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 3px rgba(23, 32, 51, 0.1));
 }
 
 .path-node-wrap {
   display: flex;
   width: 100%;
-  max-width: 800px;
   position: relative;
   z-index: 2;
   align-items: center;
@@ -1916,6 +1903,17 @@ button:focus-visible {
   padding-left: 50%;
 }
 
+.path-star {
+  fill: var(--yellow);
+  opacity: 0.4;
+  filter: drop-shadow(0 0 4px rgba(255, 200, 50, 0.4));
+}
+
+.path-star:nth-child(odd) {
+  fill: var(--blue);
+  filter: drop-shadow(0 0 4px rgba(100, 150, 255, 0.3));
+}
+
 .path-planet-bubble {
   width: 290px;
   border: 3px solid var(--line);
@@ -1928,7 +1926,17 @@ button:focus-visible {
   align-items: center;
   text-align: center;
   position: relative;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.25s ease;
+}
+
+.path-node-wrap.active .path-planet-bubble {
+  transform: rotate(-1deg) scale(1.02);
+  box-shadow: 8px 8px 0 var(--line);
+}
+
+.path-planet-bubble:hover {
+  transform: rotate(1deg) scale(1.03);
+  box-shadow: 8px 8px 0 var(--line);
 }
 
 .color-yellow { background: #fffde6; }
@@ -1961,7 +1969,8 @@ button:focus-visible {
 
 .mini-progress-dots {
   display: flex;
-  gap: 5px;
+  justify-content: center;
+  gap: 6px;
   margin-bottom: 12px;
 }
 
@@ -1995,47 +2004,153 @@ button:focus-visible {
   box-shadow: 3px 3px 0 var(--line) !important;
 }
 
-/* Ship avatar indicator */
+/* Ship avatar indicator — mini CSS art ship */
 .ship-avatar-indicator {
   position: absolute;
-  font-size: 2.8rem;
   z-index: 10;
   top: 50%;
-  transform: translateY(-50%);
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+  translate: 0 -50%;
+  filter: drop-shadow(0 3px 6px rgba(0,0,0,0.18));
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .path-node-wrap.left .ship-avatar-indicator {
-  right: 42%;
+  left: 18%;
 }
 
 .path-node-wrap.right .ship-avatar-indicator {
-  left: 42%;
+  left: 82%;
+}
+
+.path-ship-wrap {
+  width: 80px;
+  height: 80px;
+  display: grid;
+  place-items: center;
+}
+
+.path-ship {
+  position: relative;
+  width: 52px;
+  height: 60px;
+  border: 4px solid var(--line);
+  border-radius: 52% 52% 42% 42%;
+  background: #ffffff;
+  box-shadow: 5px 5px 0 rgba(23, 32, 51, 0.12);
+}
+
+.path-ship::before {
+  content: "";
+  position: absolute;
+  top: -16%;
+  left: 50%;
+  width: 46%;
+  aspect-ratio: 1;
+  border: 4px solid var(--line);
+  border-radius: 50%;
+  background: var(--orange);
+  transform: translateX(-50%);
+}
+
+.path-ship-window {
+  position: absolute;
+  top: 24%;
+  left: 50%;
+  width: 46%;
+  aspect-ratio: 1;
+  border: 4px solid var(--line);
+  border-radius: 50%;
+  background: var(--blue);
+  transform: translateX(-50%);
+}
+
+.path-ship-fin {
+  position: absolute;
+  bottom: 18%;
+  width: 32%;
+  height: 24%;
+  border: 4px solid var(--line);
+  background: var(--pink);
+}
+
+.path-ship-fin.left {
+  left: -22%;
+  border-radius: 70% 10% 20% 70%;
+}
+
+.path-ship-fin.right {
+  right: -22%;
+  border-radius: 10% 70% 70% 20%;
+}
+
+.path-ship-flame {
+  position: absolute;
+  bottom: -30%;
+  left: 50%;
+  width: 40%;
+  height: 32%;
+  border: 4px solid var(--line);
+  border-radius: 0 0 50% 50%;
+  background: var(--yellow);
+  transform-origin: top center;
+  translate: -50% 0;
+  animation: flameFlicker 0.4s ease-in-out infinite alternate;
+}
+
+@keyframes flameFlicker {
+  0% { transform: scaleY(0.85); opacity: 0.8; }
+  100% { transform: scaleY(1.15); opacity: 1; }
+}
+
+.animate-float {
+  animation: pathFloat 3s ease-in-out infinite;
+}
+
+@keyframes pathFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
 }
 
 .indicator-tooltip {
   position: absolute;
-  top: -24px;
+  top: -36px;
   left: 50%;
-  transform: translateX(-50%);
-  font-size: 0.75rem;
+  translate: -50% 0;
+  font-size: 0.72rem;
   font-weight: bold;
   background: var(--yellow);
   border: 2px solid var(--line);
-  padding: 1px 6px;
-  border-radius: 4px;
+  padding: 2px 8px;
+  border-radius: 8px;
   white-space: nowrap;
+  box-shadow: 2px 2px 0 var(--line);
 }
 
 /* Locked nodes */
 .path-node-wrap.locked {
-  opacity: 0.75;
+  opacity: 1;
 }
 
 .lock-milestone-text {
   font-weight: bold;
   font-size: 0.85rem;
   color: #cc3333;
+}
+
+.home-victory-banner {
+  margin-top: 10px;
+  font-weight: 900;
+  font-size: 1.1rem;
+  color: var(--green);
+  text-align: center;
+  animation: victoryBounce 1s ease-in-out infinite;
+}
+
+@keyframes victoryBounce {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
 }
 
 /* Milestone tracking */
@@ -2270,9 +2385,12 @@ button:focus-visible {
   .shop-grid {
     grid-template-columns: 1fr;
   }
-  .flight-path-line,
-  .galaxy-path-line {
-    left: 20px;
+  .flight-path-svg {
+    display: none;
+  }
+  .flight-path-container {
+    padding: 40px 0;
+    gap: 60px;
   }
   .path-node-wrap.left,
   .path-node-wrap.right,
@@ -2282,8 +2400,120 @@ button:focus-visible {
     padding-left: 50px;
     padding-right: 0;
   }
-  .path-node-wrap.left .ship-avatar-indicator,
+  .path-node-wrap.left .ship-avatar-indicator {
+    left: -6px;
+    right: auto;
+  }
   .path-node-wrap.right .ship-avatar-indicator {
-    left: -10px;
+    left: -6px;
+    right: auto;
+  }
+  .path-planet-bubble {
+    width: 240px;
   }
 }
+
+/* --- Scribble Spaceship Writing Sandbox --- */
+.writing-target-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.6);
+  border: 3px solid var(--line);
+  border-radius: var(--radius-card);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.writing-word-display {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.writing-emoji {
+  font-size: 3rem;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+}
+
+.writing-target-word {
+  font-size: 2.8rem;
+  font-weight: 1000;
+  color: var(--ink);
+  letter-spacing: 0.1em;
+  margin: 0;
+}
+
+.writing-description {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  max-width: 500px;
+  margin: 0;
+}
+
+.writing-instruction {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--ink);
+  margin: 8px 0 0;
+}
+
+.writing-canvas-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 620px;
+  margin: 0 auto 20px;
+  border: 4px solid var(--line);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  box-shadow: 6px 6px 0 var(--line);
+  background: #ffffff;
+}
+
+.writing-canvas {
+  display: block;
+  width: 100%;
+  height: 200px;
+  cursor: crosshair;
+  background: #ffffff;
+}
+
+.canvas-placeholder {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: rgba(0, 0, 0, 0.18);
+  pointer-events: none;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.writing-local-feedback {
+  font-weight: 900;
+  font-size: 1rem;
+  color: #e11d48; /* Crimson / rose red for failure feedback */
+  background: #ffe4e6;
+  border: 2px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 16px;
+  text-align: center;
+  margin: 10px auto;
+  max-width: 500px;
+  box-shadow: 3px 3px 0 var(--line);
+}
+
+.writing-local-feedback.is-checking {
+  color: var(--ink);
+  background: #f0f0f0;
+}
+

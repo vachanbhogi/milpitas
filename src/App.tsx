@@ -16,7 +16,10 @@ import {
   type PhonicsLesson,
   type ChoiceLesson,
   type SentenceLesson,
-  type WritingLesson
+  type WritingLesson,
+  type SpeechRecognition,
+  type SpeechRecognitionEvent,
+  type SpeechRecognitionErrorEvent
 } from './types';
 import { Home } from './pages/Home';
 import { AppCourse } from './pages/AppCourse';
@@ -97,7 +100,7 @@ function App() {
   const [sparkles, setSparkles] = useState<{ id: number; emoji: string; x: number; y: number; scale: number }[]>([]);
 
   const bestVoiceRef = useRef<VoiceSnapshot>(EMPTY_VOICE);
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
   const recognitionTranscriptRef = useRef<string>('');
 
   const { isListening, isSupported, error: micError, startRecording, stopRecording, setOnChunk } = useMicrophone();
@@ -231,16 +234,16 @@ function App() {
     reset();
 
     // Start browser SpeechRecognition if available
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (SpeechRecognition) {
+    const SpeechRecognitionAPI = (window as unknown as { SpeechRecognition?: new () => SpeechRecognition, webkitSpeechRecognition?: new () => SpeechRecognition }).SpeechRecognition || (window as unknown as { SpeechRecognition?: new () => SpeechRecognition, webkitSpeechRecognition?: new () => SpeechRecognition }).webkitSpeechRecognition;
+    if (SpeechRecognitionAPI) {
       try {
-        const rec = new SpeechRecognition();
+        const rec = new SpeechRecognitionAPI();
         rec.continuous = false;
         rec.interimResults = false;
         rec.lang = 'en-US';
         
         let localTranscript = '';
-        rec.onresult = (event: any) => {
+        rec.onresult = (event: SpeechRecognitionEvent) => {
           const result = event.results[event.results.length - 1];
           if (result && result[0]) {
             localTranscript = result[0].transcript;
@@ -248,7 +251,7 @@ function App() {
             console.log('Browser SpeechRecognition heard:', localTranscript);
           }
         };
-        rec.onerror = (event: any) => {
+        rec.onerror = (event: SpeechRecognitionErrorEvent) => {
           console.warn('Browser SpeechRecognition error:', event.error);
         };
         rec.onend = () => {
@@ -398,7 +401,8 @@ function App() {
     formData.append('file', wavBlob, 'earthlingo.wav');
     formData.append('response_format', 'json');
 
-    const response = await fetch(`http://127.0.0.1:8080/inference?word=${encodeURIComponent(activeLesson.targetText)}`, {
+    const targetWord = isPhonicsLesson(activeLesson) ? activeLesson.targetText : '';
+    const response = await fetch(`http://127.0.0.1:8080/inference?word=${encodeURIComponent(targetWord)}`, {
       method: 'POST',
       body: formData,
     });

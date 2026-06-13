@@ -239,12 +239,12 @@ function CourseMap({
         ].map((item) => (
           <motion.div key={item.label} variants={fadeUpFast}
             whileHover={{ y: -2, transition: { type: 'spring', stiffness: 200, damping: 12 } }}
-            style={{ display: 'grid', gap: '4px' }}>
-            <span>{item.label}</span>
-            <strong>{item.value}</strong>
-            <div className="status-track" style={{ height: '8px', background: 'rgba(23, 32, 51, 0.12)', borderRadius: '4px', marginTop: '4px', overflow: 'hidden' }}>
+            style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '100%' }}>
+            <span style={{ whiteSpace: 'nowrap' }}>{item.label}</span>
+            <div className="status-track" style={{ flex: 1, height: '8px', background: 'rgba(23, 32, 51, 0.12)', borderRadius: '4px', overflow: 'hidden', margin: 0 }}>
               <div className="status-fill" style={{ width: `${item.progressPercent}%`, height: '100%', background: item.color, borderRadius: '4px' }} />
             </div>
+            <strong style={{ fontSize: '1.5rem', whiteSpace: 'nowrap' }}>{item.value}</strong>
           </motion.div>
         ))}
       </motion.section>

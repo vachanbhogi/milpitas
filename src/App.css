@@ -343,15 +343,17 @@ button:focus-visible {
   gap: 12px;
 }
 
-.status-strip div {
-  min-height: 96px;
-  display: grid;
-  align-content: center;
-  gap: 4px;
-  padding: 18px;
+.status-strip > div {
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 18px;
   border: 3px solid var(--line);
   border-radius: var(--radius-card);
   background: var(--surface);
+  box-sizing: border-box;
 }
 
 .status-strip span,
@@ -2139,7 +2141,7 @@ button:focus-visible {
   position: absolute;
   z-index: 10;
   left: 50%;
-  translate: -50% -10%;
+  translate: -50% 30%;
   filter: drop-shadow(0 3px 6px rgba(0,0,0,0.18));
   display: flex;
   align-items: center;

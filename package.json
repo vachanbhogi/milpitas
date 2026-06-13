@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "whisper:setup": "cd whisper.cpp && make build && ./models/download-ggml-model.sh tiny.en",
+    "whisper:server": "cd whisper.cpp && ./build/bin/whisper-server -m models/ggml-tiny.en.bin --port 8080 --host 127.0.0.1"
   },
   "dependencies": {
     "@huggingface/transformers": "^4.2.0",

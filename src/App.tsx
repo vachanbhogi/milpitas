@@ -571,7 +571,6 @@ function App() {
           completedCount={completedCount}
           totalLessons={totalLessons}
           completedLessons={completedLessons}
-          onOpenModule={openModule}
           onOpenLesson={goToLesson}
           onRestart={restartCourse}
           shipProgress={shipProgress}

@@ -2043,11 +2043,6 @@ button:focus-visible {
   transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.25s ease;
 }
 
-.path-node-wrap.active .path-planet-bubble {
-  transform: rotate(-1deg) scale(1.02);
-  box-shadow: 8px 8px 0 var(--line);
-}
-
 .path-planet-bubble:hover {
   transform: rotate(1deg) scale(1.03);
   box-shadow: 8px 8px 0 var(--line);
@@ -2400,85 +2395,85 @@ button:focus-visible {
 }
 
 /* --- Galaxy Rewards Orbit Flight Path --- */
-.galaxy-map-section {
+.seed-log-section {
   margin-top: 40px;
   padding: 30px 20px;
   background: rgba(23, 32, 51, 0.02);
   border: 3px solid var(--line);
   border-radius: var(--radius-card);
-  position: relative;
+}
+
+.seed-log-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.seed-log-card {
+  border: 3px solid var(--line);
+  border-radius: 20px;
+  padding: 16px;
+  background: var(--surface);
+  box-shadow: 4px 4px 0 var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: box-shadow 0.2s ease;
+}
+
+.seed-log-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.seed-log-header h3 {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  margin: 0;
+}
+
+.seed-log-track {
+  width: 100%;
+  height: 10px;
+  background: var(--line);
+  border-radius: 999px;
   overflow: hidden;
 }
 
-.galaxy-path-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  position: relative;
-  padding: 60px 0;
-  gap: 80px;
-}
-
-.galaxy-path-line {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 50%;
-  width: 8px;
-  border-left: 6px dashed var(--line);
-  transform: translateX(-3px);
-  z-index: 1;
-}
-
-.galaxy-node-wrap {
-  display: flex;
-  width: 100%;
-  max-width: 800px;
-  position: relative;
-  z-index: 2;
-  align-items: center;
-}
-
-.galaxy-node-wrap.left {
-  justify-content: flex-start;
-  padding-right: 50%;
-}
-
-.galaxy-node-wrap.right {
-  justify-content: flex-end;
-  padding-left: 50%;
-}
-
-.galaxy-planet-bubble {
-  width: 290px;
-  border: 3px solid var(--line);
-  border-radius: 24px;
-  padding: 20px;
-  background: var(--surface);
-  box-shadow: 6px 6px 0 var(--line);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  position: relative;
-  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease;
-}
-
-.galaxy-planet-bubble:hover {
-  transform: scale(1.05) translateY(-5px);
-  box-shadow: 8px 12px 0 var(--line);
-}
-
-.seed-collect-status {
-  font-weight: 800;
-  font-size: 0.85rem;
-  background: var(--line);
-  color: white;
-  padding: 3px 8px;
+.seed-log-fill {
+  height: 100%;
   border-radius: 999px;
-  display: inline-block;
-  margin-top: 6px;
-  margin-bottom: 8px;
+  background: var(--yellow);
+}
+
+.seed-log-count {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--text);
+  text-align: right;
+}
+
+.seed-log-dots {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.seed-log-dot {
+  width: 28px;
+  height: 28px;
+  border: 2px solid var(--line);
+  border-radius: 50%;
+  background: var(--surface);
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.seed-log-dot.is-complete {
+  background: var(--green);
+  border-color: var(--green);
 }
 
 @media (max-width: 768px) {
@@ -2490,9 +2485,7 @@ button:focus-visible {
     gap: 60px;
   }
   .path-node-wrap.left,
-  .path-node-wrap.right,
-  .galaxy-node-wrap.left,
-  .galaxy-node-wrap.right {
+  .path-node-wrap.right {
     justify-content: flex-start;
     padding-left: 50px;
     padding-right: 0;

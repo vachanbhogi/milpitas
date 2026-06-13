@@ -167,6 +167,7 @@ button:focus-visible {
   align-items: center;
   justify-content: center;
   gap: 8px;
+  padding: 0 20px;
   border-radius: 999px;
   background: #fff3a8;
   font-weight: 1000;

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { MascotScene } from '../components/MascotScene';
 import { PictureBadge } from '../components/PictureBadge';
 import { playSynthesizedPhonics } from '../audioUtils';
@@ -15,6 +16,17 @@ import {
   type WritingLesson,
   type VoiceSnapshot
 } from '../types';
+
+const springTap = { type: 'spring' as const, stiffness: 500, damping: 20 };
+const stagger = { staggerChildren: 0.08 };
+const fadeUp = {
+  hidden: { opacity: 0, y: 24 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.23, 1, 0.32, 1] } },
+};
+const fadeUpFast = {
+  hidden: { opacity: 0, y: 14 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: [0.23, 1, 0.32, 1] } },
+};
 
 type HomePlanetNode = {
   id: 'home-planet';
@@ -106,63 +118,68 @@ function CourseMap({
   const hasUnlockedHome = completedCount >= totalLessons;
 
   return (
-    <main className="course-layout">
-      <section className="hero-panel">
-        <div className="hero-copy">
-          <p className="eyebrow">Interactive Learning Flight Path</p>
-          <h1>Help Zibi get home.</h1>
-          <p>
+    <motion.main className="course-layout" initial="hidden" animate="visible" variants={stagger}>
+      <motion.section className="hero-panel" variants={fadeUp}>
+        <motion.div className="hero-copy" variants={stagger}>
+          <motion.p className="eyebrow" variants={fadeUpFast}>Interactive Learning Flight Path</motion.p>
+          <motion.h1 variants={fadeUpFast}>Help Zibi get home.</motion.h1>
+          <motion.p variants={fadeUpFast}>
             Welcome to <strong>Mumble</strong>! Speak phonics sounds and guide Zibi
             along the stellar orbit pathway back to his Home Planet.
-          </p>
-          <div className="hero-actions">
-            <button className="primary-action" type="button" onClick={() => onOpenModule('phonics')}>
+          </motion.p>
+          <motion.div className="hero-actions" variants={fadeUpFast}>
+            <motion.button className="primary-action" type="button" onClick={() => onOpenModule('phonics')}
+              whileHover={{ scale: 1.05, boxShadow: '7px 7px 0 #172033' }} whileTap={{ scale: 0.96 }} transition={springTap}>
               Start Orbit
-            </button>
-            <button className="secondary-action" type="button" onClick={onOpenRewards}>
+            </motion.button>
+            <motion.button className="secondary-action" type="button" onClick={onOpenRewards}
+              whileHover={{ scale: 1.05, boxShadow: '7px 7px 0 #172033' }} whileTap={{ scale: 0.96 }} transition={springTap}>
               Rewards Path
-            </button>
-          </div>
-        </div>
+            </motion.button>
+          </motion.div>
+        </motion.div>
 
-        <MascotScene 
-          progress={shipProgress} 
-          mood={allDone ? 'launch' : 'happy'} 
-        />
-      </section>
+        <motion.div variants={fadeUp}>
+          <MascotScene progress={shipProgress} mood={allDone ? 'launch' : 'happy'} />
+        </motion.div>
+      </motion.section>
 
-      <section className="status-strip" aria-label="course status">
-        <div>
-          <span>Ship repair</span>
-          <strong>{shipProgress}%</strong>
-        </div>
-        <div>
-          <span>Missions</span>
-          <strong>{completedCount}/{totalLessons}</strong>
-        </div>
-        <div>
-          <span>Whisper lab</span>
-          <strong>{isServerConnected ? 'online' : 'offline'}</strong>
-        </div>
-      </section>
+      <motion.section className="status-strip" variants={fadeUp} aria-label="course status">
+        {[
+          { label: 'Ship repair', value: `${shipProgress}%` },
+          { label: 'Missions', value: `${completedCount}/${totalLessons}` },
+        ].map((item) => (
+          <motion.div key={item.label} variants={fadeUpFast}
+            whileHover={{ y: -2, transition: { type: 'spring', stiffness: 200, damping: 12 } }}>
+            <span>{item.label}</span>
+            <strong>{item.value}</strong>
+          </motion.div>
+        ))}
+      </motion.section>
 
-      {allDone && (
-        <section className="launch-card">
-          <div>
-            <p className="eyebrow">Launch ready</p>
-            <h2>Zibi can visit Earth again.</h2>
-            <p>Every Scoin seed is glowing. Replay the course or jump into any planet.</p>
-          </div>
-          <button className="secondary-action" type="button" onClick={onRestart}>
-            Play Again
-          </button>
-        </section>
-      )}
+      <AnimatePresence>
+        {allDone && (
+          <motion.section className="launch-card"
+            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            transition={{ type: 'spring', stiffness: 200, damping: 14 }}>
+            <div>
+              <p className="eyebrow">Launch ready</p>
+              <h2>Zibi can visit Earth again.</h2>
+              <p>Every Scoin seed is glowing. Replay the course or jump into any planet.</p>
+            </div>
+            <motion.button className="secondary-action" type="button" onClick={onRestart}
+              whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.96 }} transition={springTap}>
+              Play Again
+            </motion.button>
+          </motion.section>
+        )}
+      </AnimatePresence>
 
-      {/* Spacelike flight path constellation */}
-      <section className="flight-path-section">
-        <h2 className="orbit-heading">✦ Constellation Orbit Trail ✦</h2>
-        <p className="path-subtitle">Follow the orbital trail to repair Zibi's ship and fly home!</p>
+      <motion.section className="flight-path-section" variants={fadeUp}>
+        <motion.h2 className="orbit-heading" variants={fadeUpFast}>✦ Constellation Orbit Trail ✦</motion.h2>
+        <motion.p className="path-subtitle" variants={fadeUpFast}>Follow the orbital trail to repair Zibi's ship and fly home!</motion.p>
         <div className="flight-path-container">
           <svg className="flight-path-svg" viewBox="0 0 800 600" preserveAspectRatio="none">
             <defs>
@@ -176,11 +193,21 @@ function CourseMap({
               d="M145 80 C480 120, 480 120, 655 180 C480 240, 480 240, 145 300 C480 360, 480 360, 655 420 C480 480, 480 480, 145 520"
               fill="none"
             />
-            <circle cx="145" cy="80" r="18" fill="url(#nodeGlow)" opacity="0.5" />
-            <circle cx="655" cy="180" r="18" fill="url(#nodeGlow)" opacity="0.5" />
-            <circle cx="145" cy="300" r="18" fill="url(#nodeGlow)" opacity="0.5" />
-            <circle cx="655" cy="420" r="18" fill="url(#nodeGlow)" opacity="0.5" />
-            <circle cx="145" cy="520" r="18" fill="url(#nodeGlow)" opacity="0.5" />
+            <motion.circle cx="145" cy="80" r="18" fill="url(#nodeGlow)" opacity="0.5"
+              animate={{ opacity: [0.3, 0.7, 0.3], r: [16, 20, 16] }}
+              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: 0 }} />
+            <motion.circle cx="655" cy="180" r="18" fill="url(#nodeGlow)" opacity="0.5"
+              animate={{ opacity: [0.3, 0.7, 0.3], r: [16, 20, 16] }}
+              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: 0.6 }} />
+            <motion.circle cx="145" cy="300" r="18" fill="url(#nodeGlow)" opacity="0.5"
+              animate={{ opacity: [0.3, 0.7, 0.3], r: [16, 20, 16] }}
+              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: 1.2 }} />
+            <motion.circle cx="655" cy="420" r="18" fill="url(#nodeGlow)" opacity="0.5"
+              animate={{ opacity: [0.3, 0.7, 0.3], r: [16, 20, 16] }}
+              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: 1.8 }} />
+            <motion.circle cx="145" cy="520" r="18" fill="url(#nodeGlow)" opacity="0.5"
+              animate={{ opacity: [0.3, 0.7, 0.3], r: [16, 20, 16] }}
+              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: 2.4 }} />
           </svg>
           
           {courseNodes.map((module, index) => {
@@ -189,31 +216,39 @@ function CourseMap({
             const isLocked = isHomePlanet && !hasUnlockedHome;
             const isCurrentActive = currentActiveModuleId === module.id;
 
-            // Calculate progress percentage inside module
             const moduleDoneCount = !isHomePlanet ? module.lessons.filter(lesson => completedLessons.has(lesson.id)).length : 0;
             const totalInModule = !isHomePlanet ? module.lessons.length : 0;
 
             return (
-              <div key={module.id} className={`path-node-wrap ${side} ${isCurrentActive ? 'active' : ''} ${isLocked ? 'locked' : ''}`}>
-                {isCurrentActive && (
-                  <div className="ship-avatar-indicator animate-float">
-                    <div className="path-ship-wrap" aria-hidden="true">
-                      <div className="path-ship">
-                        <span className="path-ship-window" />
-                        <span className="path-ship-fin left" />
-                        <span className="path-ship-fin right" />
-                        <span className="path-ship-flame" />
+              <motion.div
+                key={module.id}
+                className={`path-node-wrap ${side} ${isCurrentActive ? 'active' : ''} ${isLocked ? 'locked' : ''}`}
+                variants={fadeUpFast}
+              >
+                <AnimatePresence>
+                  {isCurrentActive && (
+                    <motion.div className="ship-avatar-indicator animate-float"
+                      initial={{ opacity: 0, scale: 0.5 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.5 }}
+                      transition={{ type: 'spring', stiffness: 200, damping: 12 }}>
+                      <div className="path-ship-wrap" aria-hidden="true">
+                        <div className="path-ship">
+                          <span className="path-ship-window" />
+                          <span className="path-ship-fin left" />
+                          <span className="path-ship-fin right" />
+                          <span className="path-ship-flame" />
+                        </div>
                       </div>
-                    </div>
-                    <span className="indicator-tooltip">Zibi is here!</span>
-                  </div>
-                )}
+                      <span className="indicator-tooltip">Zibi is here!</span>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
                 
-                <div className={`path-planet-bubble color-${module.colorClass}`}>
-                  <PictureBadge 
-                    art={isHomePlanet ? 'planet' : module.id === 'phonics' ? 'planet' : module.id === 'letters' ? 'star' : module.id === 'writing' ? 'paint' : 'ship'} 
-                    label={module.title} 
-                  />
+                <motion.div className={`path-planet-bubble color-${module.colorClass}`}
+                  whileHover={{ scale: 1.03, rotate: 1, boxShadow: '8px 8px 0 #172033' }}
+                  transition={{ type: 'spring', stiffness: 200, damping: 12 }}>
+                  <PictureBadge art={isHomePlanet ? 'planet' : module.id === 'phonics' ? 'planet' : module.id === 'letters' ? 'star' : module.id === 'writing' ? 'paint' : 'ship'} label={module.title} />
                   <div className="planet-details">
                     <h3>{module.title}</h3>
                     {isHomePlanet ? (
@@ -229,14 +264,15 @@ function CourseMap({
                         <span className="planet-node-progress">{moduleDoneCount}/{totalInModule} completed</span>
                         <div className="mini-progress-dots">
                           {module.lessons.map(lesson => (
-                            <button 
-                              key={lesson.id} 
+                            <motion.button
+                              key={lesson.id}
                               className={`path-dot ${completedLessons.has(lesson.id) ? 'is-complete' : ''}`}
                               type="button"
-                              onClick={() => {
-                                onOpenLesson(lesson);
-                              }}
+                              onClick={() => onOpenLesson(lesson)}
                               title={`Start lesson: ${lesson.title}`}
+                              whileHover={{ scale: 1.6 }}
+                              whileTap={{ scale: 0.8 }}
+                              transition={{ type: 'spring', stiffness: 400, damping: 12 }}
                             />
                           ))}
                         </div>
@@ -245,20 +281,25 @@ function CourseMap({
                   </div>
                   
                   {!isLocked && !isHomePlanet && (
-                    <button className="primary-action start-planet-btn" onClick={() => onOpenModule(module.id)}>
+                    <motion.button className="primary-action start-planet-btn" onClick={() => onOpenModule(module.id)}
+                      whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} transition={springTap}>
                       Land!
-                    </button>
+                    </motion.button>
                   )}
                   {isHomePlanet && !isLocked && (
-                    <div className="home-victory-banner">🎉 VICTORY! ZIBI IS HOME! 🎉</div>
+                    <motion.div className="home-victory-banner"
+                      animate={{ scale: [1, 1.08, 1] }}
+                      transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}>
+                      🎉 VICTORY! ZIBI IS HOME! 🎉
+                    </motion.div>
                   )}
-                </div>
-              </div>
+                </motion.div>
+              </motion.div>
             );
           })}
         </div>
-      </section>
-    </main>
+      </motion.section>
+    </motion.main>
   );
 }
 
@@ -342,105 +383,134 @@ function LessonScreen({
   }
 
   return (
-    <main className="lesson-layout">
+    <motion.main className="lesson-layout" initial="hidden" animate="visible" variants={stagger}>
       <div className="lesson-grid">
-        <section className={`lesson-card module-${activeModule.colorClass}`}>
-          <div className="lesson-header">
-            <button className="back-button" type="button" onClick={onBack}>
+        <motion.section className={`lesson-card module-${activeModule.colorClass}`} variants={fadeUp}>
+          <motion.div className="lesson-header" variants={fadeUpFast}>
+            <motion.button className="back-button" type="button" onClick={onBack}
+              whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.96 }} transition={springTap}>
               Map
-            </button>
+            </motion.button>
             <div>
               <span>{activeModule.planet}</span>
               <strong>{currentModuleProgress}/{activeModule.lessons.length} complete</strong>
             </div>
-          </div>
+          </motion.div>
 
-          <div className="mission-banner">
-            <PictureBadge 
-              art={lesson.moduleId === 'phonics' ? 'planet' : lesson.moduleId === 'letters' ? 'star' : lesson.moduleId === 'writing' ? 'paint' : 'ship'} 
-              label={getLessonIcon(lesson.moduleId)} 
-            />
-            <div>
-              <p className="eyebrow">Mission {activeLessonIndex + 1}</p>
-              <h1>{lesson.title}</h1>
-              <p>{lesson.storyPrompt}</p>
-            </div>
-          </div>
+          <motion.div className="mission-banner" variants={fadeUpFast}>
+            <motion.div
+              animate={{ rotate: [0, 5, -5, 0] }}
+              transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}>
+              <PictureBadge
+                art={lesson.moduleId === 'phonics' ? 'planet' : lesson.moduleId === 'letters' ? 'star' : lesson.moduleId === 'writing' ? 'paint' : 'ship'}
+                label={getLessonIcon(lesson.moduleId)}
+              />
+            </motion.div>
+            <motion.div variants={stagger}>
+              <motion.p className="eyebrow" variants={fadeUpFast}>Mission {activeLessonIndex + 1}</motion.p>
+              <motion.h1 variants={fadeUpFast}>{lesson.title}</motion.h1>
+              <motion.p variants={fadeUpFast}>{lesson.storyPrompt}</motion.p>
+            </motion.div>
+          </motion.div>
 
-          {lesson.type === 'phonics' && (
-            <PhonicsMission
-              lesson={lesson}
-              status={status}
-              feedbackText={feedbackText}
-              heardText={heardText}
-              isSupported={isSupported}
-              isListening={isListening}
-              isServerConnected={isServerConnected}
-              soundClass={soundClass}
-              confidence={confidence}
-              bestVoice={bestVoice}
-              meterScale={meterScale}
-              onStartRecording={onStartRecording}
-              onStopRecording={onStopRecording}
-            />
-          )}
+          <AnimatePresence mode="wait">
+            <motion.div key={lesson.id + status}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}>
+              {lesson.type === 'phonics' && (
+                <PhonicsMission
+                  lesson={lesson}
+                  status={status}
+                  feedbackText={feedbackText}
+                  heardText={heardText}
+                  isSupported={isSupported}
+                  isListening={isListening}
+                  isServerConnected={isServerConnected}
+                  soundClass={soundClass}
+                  confidence={confidence}
+                  bestVoice={bestVoice}
+                  meterScale={meterScale}
+                  onStartRecording={onStartRecording}
+                  onStopRecording={onStopRecording}
+                />
+              )}
 
-          {(lesson.type === 'letter-choice' || lesson.type === 'grammar-choice') && (
-            <ChoiceMission
-              lesson={lesson as ChoiceLesson}
-              status={status}
-              feedbackText={feedbackText}
-              selectedChoiceId={selectedChoiceId}
-              onChoice={onChoice}
-            />
-          )}
+              {(lesson.type === 'letter-choice' || lesson.type === 'grammar-choice') && (
+                <ChoiceMission
+                  lesson={lesson as ChoiceLesson}
+                  status={status}
+                  feedbackText={feedbackText}
+                  selectedChoiceId={selectedChoiceId}
+                  onChoice={onChoice}
+                />
+              )}
 
-          {lesson.type === 'sentence-build' && (
-            <SentenceMission
-              lesson={lesson as SentenceLesson}
-              status={status}
-              feedbackText={feedbackText}
-              selectedTiles={selectedTiles}
-              onTile={onTile}
-              onClear={onClearSentence}
-            />
-          )}
+              {lesson.type === 'sentence-build' && (
+                <SentenceMission
+                  lesson={lesson as SentenceLesson}
+                  status={status}
+                  feedbackText={feedbackText}
+                  selectedTiles={selectedTiles}
+                  onTile={onTile}
+                  onClear={onClearSentence}
+                />
+              )}
 
-          {lesson.type === 'writing' && (
-            <WritingMission
-              lesson={lesson as WritingLesson}
-              status={status}
-              onComplete={onCompleteWriting}
-            />
-          )}
+              {lesson.type === 'writing' && (
+                <WritingMission
+                  lesson={lesson as WritingLesson}
+                  status={status}
+                  onComplete={onCompleteWriting}
+                />
+              )}
+            </motion.div>
+          </AnimatePresence>
 
-          {isComplete && (
-            <div className="success-row">
-              <div>
-                <span className="seed-icon" aria-hidden="true" />
-                <strong>{lesson.rewardName} (+1 Scoin Seed!)</strong>
-              </div>
-              <button className="primary-action" type="button" onClick={onNext}>
-                Next Mission
-              </button>
-            </div>
-          )}
-        </section>
+          <AnimatePresence>
+            {isComplete && (
+              <motion.div className="success-row"
+                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 20, scale: 0.95 }}
+                transition={{ type: 'spring', stiffness: 200, damping: 14 }}>
+                <div>
+                  <motion.span className="seed-icon" aria-hidden="true"
+                    animate={{ rotate: [0, -35, 0] }}
+                    transition={{ duration: 0.5, ease: 'easeOut' }} />
+                  <strong>{lesson.rewardName} (+1 Scoin Seed!)</strong>
+                </div>
+                <motion.button className="primary-action" type="button" onClick={onNext}
+                  whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.96 }} transition={springTap}>
+                  Next Mission
+                </motion.button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.section>
 
-        <section className="mascot-side-panel">
+        <motion.section className="mascot-side-panel" variants={fadeUp}
+          animate={status === 'recording' ? { boxShadow: '0 0 24px rgba(100, 219, 135, 0.3)' } : { boxShadow: '0 16px 0 rgba(23, 32, 51, 0.12)' }}
+          transition={{ duration: 0.4 }}>
           <div className="mascot-panel-header">
-            <h2>Zibi's Cabin</h2>
-            <p className="cabin-status">
+            <motion.h2
+              animate={status === 'success' ? { scale: [1, 1.05, 1] } : {}}
+              transition={{ duration: 0.4 }}>
+              Zibi's Cabin
+            </motion.h2>
+            <motion.p className="cabin-status"
+              key={status}
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2 }}>
               {status === 'recording' ? 'Listening...' : status === 'checking' ? 'Translating...' : isComplete ? 'Success!' : 'Ready'}
-            </p>
+            </motion.p>
           </div>
-          <MascotScene 
-            progress={shipProgress} 
-            mood={mascotMood} 
-          />
-        </section>
+          <MascotScene progress={shipProgress} mood={mascotMood} />
+        </motion.section>
       </div>
-    </main>
+    </motion.main>
   );
 }
 
@@ -485,81 +555,138 @@ function PhonicsMission({
   }
 
   return (
-    <div className="mission-body">
-      <section 
-        className="sound-stage clickable-sound-stage" 
+    <motion.div className="mission-body" variants={stagger}>
+      <motion.section
+        className="sound-stage clickable-sound-stage"
         aria-label="speech mission"
         onClick={() => playSynthesizedPhonics(lesson.targetText)}
         style={{ cursor: 'pointer' }}
+        variants={fadeUpFast}
+        whileHover={{ y: -3, boxShadow: '0 20px 0 rgba(23,32,51,0.15)' }}
+        transition={{ type: 'spring', stiffness: 200, damping: 12 }}
       >
         <div className="target-label">Teach Zibi (Tap to Hear) 🔊</div>
-        <h2>{lesson.displayText}</h2>
-        <div className="phonics-row" aria-label="sound parts">
+        <motion.h2
+          animate={isListening ? { scale: [1, 1.06, 1] } : {}}
+          transition={{ duration: 1.2, repeat: isListening ? Infinity : 0, ease: 'easeInOut' }}>
+          {lesson.displayText}
+        </motion.h2>
+        <motion.div className="phonics-row" aria-label="sound parts" variants={stagger}>
           {lesson.phonicsParts.map(part => (
-            <span 
+            <motion.span
               key={part}
+              variants={fadeUpFast}
               onClick={(e) => {
                 e.stopPropagation();
                 playSynthesizedPhonics(part);
               }}
               style={{ cursor: 'pointer' }}
+              whileHover={{ scale: 1.12, y: -2, boxShadow: '6px 6px 0 #172033' }}
+              whileTap={{ scale: 0.92 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 10 }}
             >
               {part}
-            </span>
+            </motion.span>
           ))}
-        </div>
+        </motion.div>
         <p>{lesson.coachPrompt}</p>
-      </section>
+      </motion.section>
 
-      <section className={`translator-panel ${isListening ? 'is-listening' : ''}`}>
+      <motion.section
+        className={`translator-panel ${isListening ? 'is-listening' : ''}`}
+        variants={fadeUpFast}
+        animate={isListening ? { backgroundColor: '#f1fff5' } : { backgroundColor: '#ffffff' }}
+        transition={{ duration: 0.3 }}
+      >
         <div className="translator-topline">
           <div>
-            <span className="live-dot" aria-hidden="true" />
-            <strong>{isListening ? getSoundLabel(soundClass) : 'translator ready'}</strong>
+            <motion.span className="live-dot" aria-hidden="true"
+              animate={isListening ? { scale: [1, 1.3, 1], backgroundColor: ['#2c3a58', '#64db87', '#2c3a58'] } : {}}
+              transition={{ duration: 0.8, repeat: isListening ? Infinity : 0 }} />
+            <motion.strong key={isListening ? 'listening' : 'idle'}
+              initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15 }}>
+              {isListening ? getSoundLabel(soundClass) : 'translator ready'}
+            </motion.strong>
           </div>
-          <span className={isServerConnected ? 'server-pill online' : 'server-pill'}>
+          <motion.span className={isServerConnected ? 'server-pill online' : 'server-pill'}
+            animate={isServerConnected ? { scale: [1, 1.02, 1] } : {}}
+            transition={{ duration: 3, repeat: isServerConnected ? Infinity : 0 }}>
             {isServerConnected ? 'Whisper online' : 'Whisper offline'}
-          </span>
+          </motion.span>
         </div>
         <div className="meter" aria-hidden="true">
-          <span style={{ transform: `scaleX(${meterScale})` }} />
+          <motion.span
+            animate={{ scaleX: meterScale }}
+            transition={{ type: 'spring', stiffness: 200, damping: 14 }}
+          />
         </div>
-        <p>{feedbackText}</p>
+        <motion.p key={feedbackText}
+          initial={{ opacity: 0, y: -4 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2 }}>
+          {feedbackText}
+        </motion.p>
         <div className="voice-readout" aria-label="voice readout">
-          <span>Best sound: {getSoundLabel(bestVoice.soundClass)}</span>
-          <span>Live confidence: {Math.round(confidence * 100)}%</span>
-          {heardText && <span>Whisper heard: {heardText}</span>}
+          {[
+            `Best sound: ${getSoundLabel(bestVoice.soundClass)}`,
+            `Live confidence: ${Math.round(confidence * 100)}%`,
+            heardText && `Whisper heard: ${heardText}`,
+          ].filter(Boolean).map((text, i) => (
+            <motion.span key={String(text)}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: i * 0.1, type: 'spring', stiffness: 200, damping: 12 }}>
+              {text}
+            </motion.span>
+          ))}
         </div>
-      </section>
+      </motion.section>
 
-      {!isSupported && (
-        <p className="system-note">This browser cannot use the microphone. Try Chrome, Edge, or Safari on localhost.</p>
-      )}
+      <AnimatePresence>
+        {!isSupported && (
+          <motion.p className="system-note" variants={fadeUpFast}
+            initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}>
+            This browser cannot use the microphone. Try Chrome, Edge, or Safari on localhost.
+          </motion.p>
+        )}
+      </AnimatePresence>
 
-      {!isServerConnected && lesson.kind === 'word' && (
-        <p className="system-note">
-          Word checks need the local Whisper server. Run bun run whisper:server before this mission.
-        </p>
-      )}
+      <AnimatePresence>
+        {!isServerConnected && lesson.kind === 'word' && (
+          <motion.p className="system-note" variants={fadeUpFast}
+            initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}>
+            Word checks need the local Whisper server. Run bun run whisper:server before this mission.
+          </motion.p>
+        )}
+      </AnimatePresence>
 
-      <div className="lesson-actions">
-        {status !== 'recording' && status !== 'checking' && (
-          <button className="primary-action" type="button" disabled={!isSupported} onClick={onStartRecording}>
-            Start Speaking
-          </button>
-        )}
-        {status === 'recording' && (
-          <button className="primary-action stop-action" type="button" onClick={onStopRecording}>
-            Check My Sound
-          </button>
-        )}
-        {status === 'checking' && (
-          <button className="primary-action" type="button" disabled>
-            Checking
-          </button>
-        )}
-      </div>
-    </div>
+      <motion.div className="lesson-actions" variants={fadeUpFast}>
+        <AnimatePresence mode="wait">
+          {status !== 'recording' && status !== 'checking' && (
+            <motion.button key="start" className="primary-action" type="button" disabled={!isSupported} onClick={onStartRecording}
+              initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
+              whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.96 }} transition={springTap}>
+              Start Speaking
+            </motion.button>
+          )}
+          {status === 'recording' && (
+            <motion.button key="stop" className="primary-action stop-action" type="button" onClick={onStopRecording}
+              initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
+              whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.96 }}
+              animate={{ scale: [1, 1.03, 1] }}
+              transition={{ duration: 0.8, repeat: Infinity }}>
+              Check My Sound
+            </motion.button>
+          )}
+          {status === 'checking' && (
+            <motion.button key="checking" className="primary-action" type="button" disabled
+              initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
+              Checking
+            </motion.button>
+          )}
+        </AnimatePresence>
+      </motion.div>
+    </motion.div>
   );
 }
 
@@ -574,32 +701,46 @@ interface ChoiceMissionProps {
 
 function ChoiceMission({ lesson, status, feedbackText, selectedChoiceId, onChoice }: ChoiceMissionProps) {
   return (
-    <div className="mission-body">
-      <section className="prompt-panel">
+    <motion.div className="mission-body" variants={stagger}>
+      <motion.section className="prompt-panel" variants={fadeUpFast}>
         <span>{lesson.type === 'letter-choice' ? 'Letter game' : 'Tiny grammar'}</span>
         <h2>{lesson.prompt}</h2>
-        <p>{feedbackText}</p>
-      </section>
+        <motion.p key={feedbackText}
+          initial={{ opacity: 0, y: -4 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2 }}>
+          {feedbackText}
+        </motion.p>
+      </motion.section>
 
-      <div className="choice-grid">
-        {lesson.choices.map(choice => {
+      <motion.div className="choice-grid" variants={stagger}>
+        {lesson.choices.map((choice) => {
           const isSelected = selectedChoiceId === choice.id;
           const isCorrect = choice.id === lesson.correctChoiceId;
           return (
-            <button
+            <motion.button
               className={`choice-card ${isSelected ? 'is-selected' : ''} ${status === 'success' && isCorrect ? 'is-correct' : ''}`}
               type="button"
               key={choice.id}
               onClick={() => onChoice(choice.id)}
+              variants={fadeUpFast}
+              whileHover={{ scale: 1.04, y: -4, boxShadow: '10px 10px 0 rgba(23,32,51,0.2)' }}
+              whileTap={{ scale: 0.95, boxShadow: '2px 2px 0 rgba(23,32,51,0.2)' }}
+              transition={{ type: 'spring', stiffness: 250, damping: 12 }}
+              layout
             >
-              <PictureBadge art={choice.art} label={choice.helper} />
+              <motion.div
+                animate={isSelected && status === 'success' ? { rotate: [0, 10, -10, 0] } : {}}
+                transition={{ duration: 0.5 }}>
+                <PictureBadge art={choice.art} label={choice.helper} />
+              </motion.div>
               <strong>{choice.label}</strong>
               <span>{choice.helper}</span>
-            </button>
+            </motion.button>
           );
         })}
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
 
@@ -615,40 +756,58 @@ interface SentenceMissionProps {
 
 function SentenceMission({ lesson, status, feedbackText, selectedTiles, onTile, onClear }: SentenceMissionProps) {
   return (
-    <div className="mission-body">
-      <section className="prompt-panel">
+    <motion.div className="mission-body" variants={stagger}>
+      <motion.section className="prompt-panel" variants={fadeUpFast}>
         <span>Sentence builder</span>
         <h2>{lesson.prompt}</h2>
-        <p>{feedbackText}</p>
-      </section>
+        <motion.p key={feedbackText}
+          initial={{ opacity: 0, y: -4 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2 }}>
+          {feedbackText}
+        </motion.p>
+      </motion.section>
 
-      <div className="sentence-builder">
-        <div className="sentence-slots" aria-label="selected words">
+      <motion.div className="sentence-builder" variants={fadeUpFast}>
+        <motion.div className="sentence-slots" aria-label="selected words" variants={stagger}>
           {lesson.correctSequence.map((_, index) => (
-            <span key={index}>{selectedTiles[index] ?? ''}</span>
+            <motion.span key={index}
+              animate={selectedTiles[index] ? { scale: [1, 1.06, 1], backgroundColor: '#e9fff0' } : { scale: 1, backgroundColor: '#f3f8ff' }}
+              transition={{ type: 'spring', stiffness: 200, damping: 12 }}>
+              {selectedTiles[index] ?? ''}
+            </motion.span>
           ))}
-        </div>
+        </motion.div>
 
-        <div className="tile-grid">
-          {lesson.tiles.map(tile => (
-            <button
+        <motion.div className="tile-grid" variants={stagger}>
+          {lesson.tiles.map((tile) => (
+            <motion.button
               key={tile}
               className={selectedTiles.includes(tile) ? 'is-used' : ''}
               type="button"
               onClick={() => onTile(tile)}
+              variants={fadeUpFast}
+              whileHover={{ scale: 1.06, y: -2, boxShadow: '7px 7px 0 #172033' }}
+              whileTap={{ scale: 0.94, boxShadow: '2px 2px 0 #172033' }}
+              transition={{ type: 'spring', stiffness: 300, damping: 10 }}
+              layout
             >
               {tile}
-            </button>
+            </motion.button>
           ))}
-        </div>
+        </motion.div>
 
-        {status !== 'success' && (
-          <button className="secondary-action clear-action" type="button" onClick={onClear}>
-            Clear
-          </button>
-        )}
-      </div>
-    </div>
+        <AnimatePresence>
+          {status !== 'success' && (
+            <motion.button className="secondary-action clear-action" type="button" onClick={onClear}
+              initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
+              whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.96 }} transition={springTap}>
+              Clear
+            </motion.button>
+          )}
+        </AnimatePresence>
+      </motion.div>
+    </motion.div>
   );
 }
 
@@ -814,19 +973,33 @@ function WritingMission({ lesson, status, onComplete }: WritingMissionProps) {
   };
 
   return (
-    <div className="mission-body">
-      <section className="writing-target-panel">
-        <div className="writing-word-display">
-          <span className="writing-emoji" aria-hidden="true">{lesson.wordEmoji}</span>
-          <h2 className="writing-target-word">{lesson.targetWord}</h2>
-        </div>
+    <motion.div className="mission-body" variants={stagger}>
+      <motion.section className="writing-target-panel" variants={fadeUpFast}>
+        <motion.div className="writing-word-display"
+          animate={status === 'success' ? { scale: [1, 1.04, 1] } : {}}
+          transition={{ duration: 0.5 }}>
+          <motion.span className="writing-emoji" aria-hidden="true"
+            animate={{ rotate: [0, 5, -5, 0] }}
+            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}>
+            {lesson.wordEmoji}
+          </motion.span>
+          <motion.h2 className="writing-target-word"
+            animate={status === 'success' ? { scale: [1, 1.08, 1], color: ['#172033', '#8677ff', '#172033'] } : {}}
+            transition={{ duration: 0.6 }}>
+            {lesson.targetWord}
+          </motion.h2>
+        </motion.div>
         <p className="writing-description">{lesson.description}</p>
-        <p className="writing-instruction">
+        <motion.p className="writing-instruction"
+          animate={!hasInk && status !== 'success' ? { opacity: [1, 0.6, 1] } : {}}
+          transition={{ duration: 2, repeat: status !== 'success' ? Infinity : 0 }}>
           Write <strong>{lesson.targetWord}</strong> on the canvas below ✏️
-        </p>
-      </section>
+        </motion.p>
+      </motion.section>
 
-      <div className="writing-canvas-wrap">
+      <motion.div className="writing-canvas-wrap" variants={fadeUpFast}
+        animate={status === 'success' ? { boxShadow: '6px 6px 0 #64db87', borderColor: '#64db87' } : {}}
+        transition={{ duration: 0.3 }}>
         <canvas
           ref={canvasRef}
           width={620}
@@ -841,37 +1014,53 @@ function WritingMission({ lesson, status, onComplete }: WritingMissionProps) {
           onTouchMove={draw}
           onTouchEnd={stopDraw}
         />
-        {!hasInk && status !== 'success' && !isChecking && (
-          <div className="canvas-placeholder" aria-hidden="true">✏️ Draw here…</div>
-        )}
-      </div>
+        <AnimatePresence>
+          {!hasInk && status !== 'success' && !isChecking && (
+            <motion.div className="canvas-placeholder" aria-hidden="true"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              ✏️ Draw here…
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
 
-      {localFeedback && (
-        <p className={`writing-local-feedback ${isChecking ? 'is-checking' : ''}`}>{localFeedback}</p>
-      )}
-
-      <div className="lesson-actions">
-        {status !== 'success' && (
-          <>
-            <button 
-              className="secondary-action" 
-              type="button" 
-              onClick={clearCanvas}
-              disabled={isChecking}
-            >
-              Clear Canvas
-            </button>
-            <button
-              className="primary-action"
-              type="button"
-              disabled={!hasInk || isChecking}
-              onClick={handleCheck}
-            >
-              {isChecking ? 'Scanning...' : 'Check My Writing!'}
-            </button>
-          </>
+      <AnimatePresence>
+        {localFeedback && (
+          <motion.p className={`writing-local-feedback ${isChecking ? 'is-checking' : ''}`}
+            initial={{ opacity: 0, y: -8, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -8, scale: 0.95 }}
+            transition={{ type: 'spring', stiffness: 200, damping: 14 }}>
+            {localFeedback}
+          </motion.p>
         )}
-      </div>
-    </div>
+      </AnimatePresence>
+
+      <motion.div className="lesson-actions" variants={fadeUpFast}>
+        <AnimatePresence>
+          {status !== 'success' && (
+            <motion.div key="actions" className="lesson-actions"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <motion.button
+                className="secondary-action"
+                type="button"
+                onClick={clearCanvas}
+                disabled={isChecking}
+                whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.96 }} transition={springTap}>
+                Clear Canvas
+              </motion.button>
+              <motion.button
+                className="primary-action"
+                type="button"
+                disabled={!hasInk || isChecking}
+                onClick={handleCheck}
+                whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.96 }} transition={springTap}>
+                {isChecking ? 'Scanning...' : 'Check My Writing!'}
+              </motion.button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+    </motion.div>
   );
 }

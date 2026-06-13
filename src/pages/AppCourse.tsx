@@ -17,6 +17,8 @@ import {
   type VoiceSnapshot,
   type PictureArt
 } from '../types';
+import { getHeardLabel, type TranscriptionSource } from '../soundSafari/transcribeAttempt';
+import { getSoundLabel } from '../soundSafari/scoring';
 
 const springTap = { type: 'spring' as const, stiffness: 500, damping: 20 };
 const stagger: Variants = {
@@ -77,6 +79,7 @@ interface AppCourseProps {
   status: LessonStatus;
   feedbackText: string;
   heardText: string;
+  heardSource: TranscriptionSource;
   isSupported: boolean;
   isListening: boolean;
   soundClass: string;
@@ -395,6 +398,7 @@ interface LessonScreenProps {
   status: LessonStatus;
   feedbackText: string;
   heardText: string;
+  heardSource: TranscriptionSource;
   isSupported: boolean;
   isListening: boolean;
   isServerConnected: boolean | null;
@@ -425,6 +429,7 @@ function LessonScreen({
   status,
   feedbackText,
   heardText,
+  heardSource,
   isSupported,
   isListening,
   isServerConnected,
@@ -453,7 +458,7 @@ function LessonScreen({
     mascotMood = 'listening';
   } else if (status === 'checking') {
     mascotMood = 'thinking';
-  } else if (status === 'success' || isComplete) {
+  } else if (status === 'success') {
     mascotMood = 'happy';
   } else if (status === 'retry' || status === 'error') {
     mascotMood = 'retry';
@@ -525,7 +530,7 @@ function LessonScreen({
           </motion.div>
 
           <AnimatePresence mode="wait">
-            <motion.div key={lesson.id + status}
+            <motion.div key={lesson.id}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
@@ -536,6 +541,7 @@ function LessonScreen({
                   status={status}
                   feedbackText={feedbackText}
                   heardText={heardText}
+                  heardSource={heardSource}
                   isSupported={isSupported}
                   isListening={isListening}
                   isServerConnected={isServerConnected}
@@ -615,7 +621,7 @@ function LessonScreen({
               initial={{ opacity: 0, y: -4 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.2 }}>
-              {status === 'recording' ? 'Listening...' : status === 'checking' ? 'Translating...' : isComplete ? 'Success!' : 'Ready'}
+              {status === 'recording' ? 'Listening...' : status === 'checking' ? 'Translating...' : status === 'success' ? 'Success!' : status === 'retry' ? 'Try again' : 'Ready'}
             </motion.p>
           </div>
           <MascotScene progress={shipProgress} mood={mascotMood} equippedItem={equippedItem} />
@@ -631,6 +637,7 @@ interface PhonicsMissionProps {
   status: LessonStatus;
   feedbackText: string;
   heardText: string;
+  heardSource: TranscriptionSource;
   isSupported: boolean;
   isListening: boolean;
   isServerConnected: boolean | null;
@@ -647,6 +654,7 @@ function PhonicsMission({
   status,
   feedbackText,
   heardText,
+  heardSource,
   isSupported,
   isListening,
   isServerConnected,
@@ -657,13 +665,7 @@ function PhonicsMission({
   onStartRecording,
   onStopRecording,
 }: PhonicsMissionProps) {
-  function getSoundLabel(sc: string) {
-    if (sc === 'hissy') return 'hissy air';
-    if (sc === 'open') return 'open voice';
-    if (sc === 'pop') return 'quick pop';
-    if (sc === 'voice') return 'voice';
-    return 'quiet';
-  }
+  const heardLabel = getHeardLabel(heardSource);
 
   return (
     <motion.div className="mission-body" variants={stagger}>
@@ -750,7 +752,7 @@ function PhonicsMission({
           {[
             `Best sound: ${getSoundLabel(bestVoice.soundClass)}`,
             `Live confidence: ${Math.round(confidence * 100)}%`,
-            heardText && `Whisper heard: ${heardText}`,
+            heardText && `${heardLabel}: ${heardText}`,
           ].filter(Boolean).map((text, i) => (
             <motion.span key={String(text)}
               initial={{ opacity: 0, scale: 0.9 }}
@@ -772,43 +774,38 @@ function PhonicsMission({
       </AnimatePresence>
 
       <AnimatePresence>
-        {!isServerConnected && lesson.kind === 'word' && (
+        {!isServerConnected && (
           <motion.p className="system-note" variants={fadeUpFast}
             initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}>
-            Word checks need the local Whisper server. Run bun run whisper:server before this mission.
+            Whisper lab offline. Start the local Whisper server for best results, or speak clearly for browser speech recognition.
           </motion.p>
         )}
       </AnimatePresence>
 
-      <motion.div className="lesson-actions" variants={fadeUpFast}>
-        <AnimatePresence mode="wait">
-          {status !== 'recording' && status !== 'checking' && (
-            <motion.button key="start" className="primary-action" type="button" disabled={!isSupported} onClick={onStartRecording}
-              initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
-              whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.96 }} transition={springTap}>
-              Start Speaking
-            </motion.button>
-          )}
-          {status === 'recording' && (
-            <motion.button key="stop" className="primary-action stop-action" type="button" onClick={onStopRecording}
-              initial={{ opacity: 0, scale: 0.9 }} exit={{ opacity: 0, scale: 0.9 }}
-              whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.96 }}
-              animate={{ opacity: 1, scale: [1, 1.03, 1] }}
-              transition={{
-                opacity: { duration: 0.3 },
-                scale: { duration: 0.8, repeat: Infinity, ease: 'easeInOut' }
-              }}>
-              Check My Sound
-            </motion.button>
-          )}
-          {status === 'checking' && (
-            <motion.button key="checking" className="primary-action" type="button" disabled
-              initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
-              Checking...
-            </motion.button>
-          )}
-        </AnimatePresence>
-      </motion.div>
+      <div className="lesson-actions">
+        {status !== 'recording' && status !== 'checking' && (
+          <motion.button className="primary-action" type="button" disabled={!isSupported} onClick={onStartRecording}
+            whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.96 }} transition={springTap}>
+            Start Speaking
+          </motion.button>
+        )}
+        {status === 'recording' && (
+          <motion.button className="primary-action stop-action" type="button" onClick={onStopRecording}
+            whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.96 }} transition={springTap}>
+            Check My Sound
+          </motion.button>
+        )}
+        {status === 'checking' && (
+          <div className="checking-state-container">
+            <button className="primary-action checking-btn" type="button" disabled>
+              Checking
+            </button>
+            <div className="grading-loading-bar" aria-label="Grading progress">
+              <div className="grading-loading-bar-fill" />
+            </div>
+          </div>
+        )}
+      </div>
     </motion.div>
   );
 }

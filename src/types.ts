@@ -13,12 +13,10 @@ export interface BaseLesson {
 
 export interface PhonicsLesson extends BaseLesson {
   type: 'phonics';
-  kind: 'sound' | 'word';
   targetText: string;
   displayText: string;
   phonicsParts: string[];
   successMatches: string[];
-  expectedSoundClass?: string;
   coachPrompt: string;
   retryPrompt: string;
   repairPart: string;

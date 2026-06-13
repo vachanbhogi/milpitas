@@ -1,5 +1,12 @@
 // A lightweight mock Whisper server for Earthlingo.
-// Runs on port 8080 and returns transcripts.
+// Runs on port 8080 and returns a random word from a pool.
+// The server has no knowledge of the "correct" answer — just like a real
+// Whisper model, it transcribes audio independently.
+
+const WORD_POOL = [
+  "sun", "moon", "star", "cat", "dog", "hat", "apple",
+  "ball", "fish", "frog", "tree", "book", "ship", "cup",
+];
 
 Bun.serve({
   port: 8080,
@@ -17,9 +24,10 @@ Bun.serve({
 
     const url = new URL(req.url);
     if (url.pathname === "/inference") {
-      const targetWord = url.searchParams.get("word") || "sat";
-      console.log(`[Mock Whisper] Inference request received. Mock transcribing to: "${targetWord}"`);
-      return new Response(JSON.stringify({ text: targetWord }), {
+      const transcript = WORD_POOL[Math.floor(Math.random() * WORD_POOL.length)];
+
+      console.log(`[Mock Whisper] returning: "${transcript}"`);
+      return new Response(JSON.stringify({ text: transcript }), {
         headers: {
           ...headers,
           "Content-Type": "application/json",

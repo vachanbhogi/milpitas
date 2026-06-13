@@ -42,10 +42,9 @@ export function useLiveVoiceAnalyzer() {
   const analyze = useCallback((samples: Float32Array): LiveVoiceResult => {
     const energy = computeRMS(samples)
     const zcr = computeZCR(samples)
-
     let next: LiveVoiceResult
-
-    if (energy < 0.018) {
+    
+    if (energy < 0.012) {
       next = {
         voiceState: 'quiet',
         soundClass: 'quiet',

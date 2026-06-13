@@ -28,10 +28,8 @@ class PhonemeCaptureProcessor extends AudioWorkletProcessor {
     this._buffer.push(copy);
     this._totalSamples += copy.length;
 
-    this.port.postMessage(
-      { type: 'chunk', audio: copy },
-      [copy.buffer]
-    );
+    // Send a separate copy for live analysis; keep stored buffer intact for final utterance.
+    this.port.postMessage({ type: 'chunk', audio: copy.slice() });
 
     return true;
   }

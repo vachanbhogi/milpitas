@@ -2828,3 +2828,70 @@ button:focus-visible {
   color: white;
 }
 
+/* Grading Loading Bar during Phonics Check */
+.checking-state-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  max-width: 320px;
+  margin: 0 auto;
+}
+
+.checking-btn {
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.grading-loading-bar {
+  width: 100%;
+  height: 14px;
+  background: rgba(23, 32, 51, 0.1);
+  border: 3px solid var(--line);
+  border-radius: 999px;
+  overflow: hidden;
+  box-shadow: 2px 2px 0 var(--line);
+  position: relative;
+}
+
+.grading-loading-bar-fill {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, var(--yellow) 0%, var(--orange) 50%, var(--yellow) 100%);
+  background-size: 200% 100%;
+  border-radius: 999px;
+  animation: gradingProgress 2.5s cubic-bezier(0.25, 0.8, 0.25, 1) forwards, gradingShimmer 1.5s linear infinite;
+  transform-origin: left;
+}
+
+@keyframes gradingProgress {
+  0% {
+    transform: scaleX(0);
+  }
+  15% {
+    transform: scaleX(0.2);
+  }
+  45% {
+    transform: scaleX(0.55);
+  }
+  75% {
+    transform: scaleX(0.85);
+  }
+  90% {
+    transform: scaleX(0.96);
+  }
+  100% {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes gradingShimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}

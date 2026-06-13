@@ -246,7 +246,7 @@ export function playSynthesizedPhonics(target: string): void {
     playS();
   } else if (cleanTarget === 'm' || cleanTarget === 'mmmm' || cleanTarget === '/m/') {
     playM();
-  } else if (cleanTarget === 'a' || cleanTarget === 'aaa' || cleanTarget === '/æ/' || cleanTarget === '/a/') {
+  } else if (cleanTarget === 'a' || cleanTarget === 'aaa' || cleanTarget === '/æ/' || cleanTarget === '/a/' || cleanTarget === '/ă/') {
     playA();
   } else if (cleanTarget === 't' || cleanTarget === '/t/') {
     playT();

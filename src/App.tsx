@@ -1,29 +1,113 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useMicrophone } from './hooks/useMicrophone';
-import { usePhonemeSprinter } from './hooks/usePhonemeSprinter';
-import { encodeFloat32ArrayToWav } from './audioUtils';
+import { useLiveVoiceAnalyzer } from './hooks/useLiveVoiceAnalyzer';
 import './App.css';
 
-interface PhonicsWord {
-  word: string;
-  emoji: string;
-  phonics: string;
-  tip: string;
+type LessonKind = 'sound' | 'word';
+
+interface Lesson {
+  id: string;
+  kind: LessonKind;
+  targetText: string;
+  displayText: string;
+  phonicsParts: string[];
+  successMatches: string[];
+  coachPrompt: string;
+  retryPrompt: string;
 }
 
-const PHONICS_WORDS: PhonicsWord[] = [
-  { word: 'Car', emoji: '🚗', phonics: 'C - AR', tip: "Make a 'Kuh' sound, then open wide for 'Arr'!" },
-  { word: 'Cat', emoji: '🐱', phonics: 'C - A - T', tip: "Say 'Kuh' like Cookie, then 'Ah', and end with a 'Tuh'!" },
-  { word: 'Dog', emoji: '🐶', phonics: 'D - O - G', tip: "Start with 'Duh', then 'Ah', and end with 'Guh' like Go!" },
-  { word: 'Sun', emoji: '☀️', phonics: 'S - U - N', tip: "Hiss like a snake 'Sss', then say 'Uh' and end with 'Nnn'!" },
-  { word: 'Tree', emoji: '🌳', phonics: 'T - R - EE', tip: "Say 'Trrr', then stretch your smile for 'Eee'!" },
-  { word: 'Book', emoji: '📖', phonics: 'B - OO - K', tip: "Start with 'Buh', then make your lips round for 'Ooh', and end with 'Kuh'!" }
+const LESSONS: Lesson[] = [
+  {
+    id: 'sound-s',
+    kind: 'sound',
+    targetText: 's',
+    displayText: 'S',
+    phonicsParts: ['ssss'],
+    successMatches: ['s', 'ess', 'sss', 'say', 'sea', 'see'],
+    coachPrompt: 'Teeth close. Air keeps sliding out.',
+    retryPrompt: 'Try a long snake sound: sssss.',
+  },
+  {
+    id: 'sound-m',
+    kind: 'sound',
+    targetText: 'm',
+    displayText: 'M',
+    phonicsParts: ['mmmm'],
+    successMatches: ['m', 'em', 'mmm', 'mom', 'hum'],
+    coachPrompt: 'Lips together. Let the sound buzz.',
+    retryPrompt: 'Close your lips and hum: mmmm.',
+  },
+  {
+    id: 'sound-a',
+    kind: 'sound',
+    targetText: 'a',
+    displayText: 'A',
+    phonicsParts: ['aaa'],
+    successMatches: ['a', 'ah', 'aa', 'at'],
+    coachPrompt: 'Open your mouth. Short sound: aaa.',
+    retryPrompt: 'Open wide and say aaa.',
+  },
+  {
+    id: 'sound-t',
+    kind: 'sound',
+    targetText: 't',
+    displayText: 'T',
+    phonicsParts: ['t'],
+    successMatches: ['t', 'tea', 'tee', 'to'],
+    coachPrompt: 'Tongue taps up top. Make it quick.',
+    retryPrompt: 'Tap the sound: t.',
+  },
+  {
+    id: 'sound-p',
+    kind: 'sound',
+    targetText: 'p',
+    displayText: 'P',
+    phonicsParts: ['p'],
+    successMatches: ['p', 'pea', 'pee', 'pa'],
+    coachPrompt: 'Lips pop open. Tiny burst of air.',
+    retryPrompt: 'Pop your lips: p.',
+  },
+  {
+    id: 'word-sat',
+    kind: 'word',
+    targetText: 'sat',
+    displayText: 'SAT',
+    phonicsParts: ['s', 'a', 't'],
+    successMatches: ['sat'],
+    coachPrompt: 'Slide the sounds together: s-a-t.',
+    retryPrompt: 'Start with ssss, then aaa, then t.',
+  },
+  {
+    id: 'word-mat',
+    kind: 'word',
+    targetText: 'mat',
+    displayText: 'MAT',
+    phonicsParts: ['m', 'a', 't'],
+    successMatches: ['mat'],
+    coachPrompt: 'Buzz, open, tap: m-a-t.',
+    retryPrompt: 'Try mmmm, aaa, t.',
+  },
+  {
+    id: 'word-pat',
+    kind: 'word',
+    targetText: 'pat',
+    displayText: 'PAT',
+    phonicsParts: ['p', 'a', 't'],
+    successMatches: ['pat'],
+    coachPrompt: 'Pop, open, tap: p-a-t.',
+    retryPrompt: 'Try p, aaa, t.',
+  },
 ];
 
-// Browser Audio Synthesizer for Game Sound Effects (Zero external asset dependencies)
+const DEMO_ENABLED = true;
+
 function playSoundEffect(type: 'success' | 'fail') {
   try {
-    const ctx = new (window.AudioContext || (window as Record<string, typeof AudioContext>).webkitAudioContext)();
+    const AudioContextCtor = window.AudioContext
+      || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!AudioContextCtor) return;
+
+    const ctx = new AudioContextCtor();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     
@@ -63,7 +147,7 @@ function playSoundEffect(type: 'success' | 'fail') {
 type GameStatus = 'idle' | 'recording' | 'transcribing' | 'success' | 'fail' | 'error';
 
 function App() {
-  const [wordIndex, setWordIndex] = useState<number>(0);
+  const [lessonIndex, setLessonIndex] = useState<number>(0);
   const [score, setScore] = useState<number>(0);
   const [gameStatus, setGameStatus] = useState<GameStatus>('idle');
   const [errorMsg, setErrorMsg] = useState<string>('');
@@ -72,22 +156,22 @@ function App() {
   const [isServerConnected, setIsServerConnected] = useState<boolean | null>(null);
 
   const { isListening, error: micError, startRecording, stopRecording, setOnChunk } = useMicrophone();
-  const { currentPhoneme, classify } = usePhonemeSprinter();
+  const { soundClass, energy, analyze, reset } = useLiveVoiceAnalyzer();
 
-  const currentWordObj = PHONICS_WORDS[wordIndex];
+  const lesson = LESSONS[lessonIndex];
+  const progressLabel = `${lessonIndex + 1}/${LESSONS.length}`;
 
-  // Feed real-time microphone chunks into the phoneme classifier for visual mouth/wave reactions
   useEffect(() => {
     if (isListening) {
       setOnChunk((chunk) => {
-        classify(chunk);
+        analyze(chunk);
       });
     } else {
       setOnChunk(null);
+      reset();
     }
-  }, [isListening, setOnChunk, classify]);
+  }, [isListening, setOnChunk, analyze, reset]);
 
-  // Check whisper.cpp connection in the background
   const checkServerConnection = async () => {
     try {
       const controller = new AbortController();
@@ -127,6 +211,28 @@ function App() {
     await startRecording();
   };
 
+  const showCorrectDemo = () => {
+    if (isListening) {
+      stopRecording().catch(() => {});
+    }
+    setHeardText(lesson.targetText);
+    setErrorMsg('');
+    setScore(prev => prev + 1);
+    setGameStatus('success');
+    playSoundEffect('success');
+  };
+
+  const showIncorrectDemo = () => {
+    if (isListening) {
+      stopRecording().catch(() => {});
+    }
+    const fakeMiss = lesson.kind === 'sound' ? 'buh' : 'bat';
+    setHeardText(fakeMiss);
+    setErrorMsg(`I heard "${fakeMiss}". ${lesson.retryPrompt}`);
+    setGameStatus('fail');
+    playSoundEffect('fail');
+  };
+
   const handleStopRecording = async () => {
     setGameStatus('transcribing');
     const samples = await stopRecording();
@@ -140,13 +246,25 @@ function App() {
 
     if (!samples || samples.length === 0) {
       setGameStatus('error');
-      setErrorMsg("I couldn't hear you! Try again.");
+      setErrorMsg("I couldn't hear you. Try once more.");
       playSoundEffect('fail');
       return;
     }
 
+    if (samples.length < 4000) {
+      setGameStatus('fail');
+      setErrorMsg('That was very quick. Hold the button a little longer.');
+      playSoundEffect('fail');
+      return;
+    }
+
+    if (DEMO_ENABLED || !isServerConnected) {
+      showIncorrectDemo();
+      return;
+    }
+
     try {
-      // Encode standard 16kHz mono Float32Array to 16-bit PCM WAV
+      const { encodeFloat32ArrayToWav } = await import('./audioUtils');
       const wavArrayBuffer = encodeFloat32ArrayToWav(samples);
       const wavBlob = new Blob([wavArrayBuffer], { type: 'audio/wav' });
 
@@ -167,35 +285,27 @@ function App() {
       const transcript = (data.text || data.result || '').trim();
       setHeardText(transcript);
 
-      // Clean characters to compare word matches
       const cleanTranscript = transcript.toLowerCase().replace(/[^a-z]/g, '');
-      const cleanTarget = currentWordObj.word.toLowerCase().replace(/[^a-z]/g, '');
+      const success = lesson.successMatches.some(match => {
+        const cleanMatch = match.toLowerCase().replace(/[^a-z]/g, '');
+        if (lesson.kind === 'sound') {
+          return cleanTranscript.includes(cleanMatch);
+        }
+        return cleanTranscript === cleanMatch || cleanTranscript.includes(cleanMatch);
+      });
 
-      // Check for fuzzy word matches (direct inclusions or overlaps)
-      if (cleanTranscript.includes(cleanTarget) || (cleanTarget.includes(cleanTranscript) && cleanTranscript.length >= 2)) {
+      if (success) {
         setScore(prev => prev + 1);
         setGameStatus('success');
         playSoundEffect('success');
       } else {
         setGameStatus('fail');
         playSoundEffect('fail');
-        
-        // Contextual smart feedback
-        if (cleanTranscript === 'far' && cleanTarget === 'car') {
-          setErrorMsg('You said "Far"! Make a "Kuh" sound at the start like in Cookie.');
-        } else if (cleanTranscript === 'cat' && cleanTarget === 'car') {
-          setErrorMsg('You said "Cat"! Try to make a round "Arr" sound at the end.');
-        } else if (cleanTranscript === 'dog' && cleanTarget === 'sun') {
-          setErrorMsg('You said "Dog"! Hiss like a snake "Sss" for Sun.');
-        } else if (transcript) {
-          setErrorMsg(`I heard "${transcript}". Let's practice the sounds!`);
-        } else {
-          setErrorMsg("I heard another sound. Let's try once more!");
-        }
+        setErrorMsg(transcript ? `I heard "${transcript}". ${lesson.retryPrompt}` : lesson.retryPrompt);
       }
     } catch {
       setGameStatus('error');
-      setErrorMsg('Cannot reach the Phonics backend. Make sure the local server is running!');
+      setErrorMsg('Cannot reach the local Whisper server.');
       playSoundEffect('fail');
     }
   };
@@ -204,131 +314,127 @@ function App() {
     setGameStatus('idle');
     setErrorMsg('');
     setHeardText('');
-    setWordIndex(prev => (prev + 1) % PHONICS_WORDS.length);
+    setLessonIndex(prev => (prev + 1) % LESSONS.length);
   };
 
-  // Map phoneme types to emoji mouth shapes to delight a 5 year old in real-time
-  const getPhonemeMouth = () => {
-    if (!isListening) return '⭐';
-    switch (currentPhoneme) {
-      case 'vocalic': return '😮'; // Vowels open wide
-      case 'fricative': return '😬'; // Hissing / sss
-      case 'plosive': return '😀'; // Pops
-      default: return '😐'; // Silence
+  const liveLabel = useMemo(() => {
+    if (!isListening) return 'ready';
+    switch (soundClass) {
+      case 'quiet': return 'quiet';
+      case 'hissy': return 'hissy sound';
+      case 'open': return 'open sound';
+      case 'pop': return 'pop sound';
+      default: return 'voice';
     }
-  };
+  }, [isListening, soundClass]);
+
+  const feedbackText = useMemo(() => {
+    if (gameStatus === 'recording') return soundClass === 'quiet' ? 'Start your sound.' : 'I hear you.';
+    if (gameStatus === 'transcribing') return 'Checking...';
+    if (gameStatus === 'success') return 'Yes. Nice sound.';
+    if (gameStatus === 'fail' || gameStatus === 'error') return errorMsg;
+    return lesson.coachPrompt;
+  }, [errorMsg, gameStatus, lesson.coachPrompt, soundClass]);
+
+  const meterScale = Math.min(Math.max(energy * 5, 0.04), 1);
 
   return (
-    <div className="app-container">
-      {/* Kid-Friendly Game Dashboard */}
-      <main className="glass-card game-dashboard">
-        {/* Star Points Score Counter */}
-        <div className="score-container">
-          <span className="star-icon">⭐</span>
-          <span className="score-value">{score}</span>
-        </div>
+    <div className="shell">
+      <main className="lesson-surface" aria-live="polite">
+        <header className="topline">
+          <div>
+            <p className="eyebrow">{lesson.kind}</p>
+            <p className="progress">{progressLabel}</p>
+          </div>
+          <div className="score" aria-label={`${score} correct`}>
+            {score}
+          </div>
+        </header>
 
-        {/* Word Display Card */}
-        <section className="word-card">
-          <div className="emoji-display">{currentWordObj.emoji}</div>
-          <h2 className="target-word">{currentWordObj.word}</h2>
-          <div className="phonics-spelling">{currentWordObj.phonics}</div>
+        <section className="target-panel">
+          <div className="target-label">Say</div>
+          <h1>{lesson.displayText}</h1>
+          <div className="phonics-row" aria-label="phonics parts">
+            {lesson.phonicsParts.map(part => (
+              <span key={part}>{part}</span>
+            ))}
+          </div>
         </section>
 
-        {/* Mascot Face & Reaction */}
-        <div className="mascot-container">
-          <div className={`mascot-avatar ${gameStatus}`}>
-            {gameStatus === 'idle' && '⭐'}
-            {gameStatus === 'recording' && getPhonemeMouth()}
-            {gameStatus === 'transcribing' && '🤔'}
-            {gameStatus === 'success' && '🎉'}
-            {gameStatus === 'fail' && '🥺'}
-            {gameStatus === 'error' && '🩹'}
+        <section className={`live-panel ${isListening ? 'is-listening' : ''}`}>
+          <div className="live-copy">
+            <span className="live-dot" />
+            <span>{liveLabel}</span>
           </div>
-          <div className="mascot-text">
-            {gameStatus === 'idle' && `Can you say "${currentWordObj.word}"?`}
-            {gameStatus === 'recording' && 'Mascot is listening... Keep speaking!'}
-            {gameStatus === 'transcribing' && 'Thinking...'}
-            {gameStatus === 'success' && 'Super job! You got it!'}
-            {gameStatus === 'fail' && (errorMsg || 'Let\'s try again!')}
-            {gameStatus === 'error' && errorMsg}
+          <div className="meter" aria-hidden="true">
+            <span style={{ transform: `scaleX(${meterScale})` }} />
           </div>
-        </div>
+          <p>{feedbackText}</p>
+        </section>
 
-        {/* Visualizer Wave when recording */}
-        {gameStatus === 'recording' && (
-          <div className="visualizer-container recording">
-            <div className="bar"></div>
-            <div className="bar"></div>
-            <div className="bar"></div>
-            <div className="bar"></div>
-            <div className="bar"></div>
-          </div>
-        )}
-
-        {/* Simple Controls */}
-        <div className="control-area">
-          {gameStatus === 'idle' && (
-            <button className="btn btn-record" onClick={handleStartRecording}>
-              🎤 Press & Say
+        <div className="controls">
+          {gameStatus !== 'recording' && gameStatus !== 'transcribing' && (
+            <button className="primary-action" type="button" onClick={handleStartRecording}>
+              Press and Say
             </button>
           )}
 
           {gameStatus === 'recording' && (
-            <button className="btn btn-stop" onClick={handleStopRecording}>
-              ⏹️ Stop & Check
+            <button className="primary-action stop-action" type="button" onClick={handleStopRecording}>
+              Stop
+            </button>
+          )}
+
+          {gameStatus === 'transcribing' && (
+            <button className="primary-action" type="button" disabled>
+              Checking
             </button>
           )}
 
           {(gameStatus === 'success' || gameStatus === 'fail' || gameStatus === 'error') && (
-            <div className="action-buttons">
-              {gameStatus !== 'success' && (
-                <button className="btn btn-retry" onClick={handleStartRecording}>
-                  🔄 Try Again
-                </button>
-              )}
-              <button className="btn btn-next" onClick={handleNextWord}>
-                Next Word ➡️
-              </button>
-            </div>
+            <button className="secondary-action" type="button" onClick={handleNextWord}>
+              Next
+            </button>
           )}
         </div>
 
-        {/* Tip Box for Phonics Practice */}
-        {(gameStatus === 'idle' || gameStatus === 'fail') && (
-          <div className="tip-box">
-            💡 <strong>Phonics Tip:</strong> {currentWordObj.tip}
+        {DEMO_ENABLED && (
+          <div className="demo-controls" aria-label="demo controls">
+            <button type="button" onClick={showIncorrectDemo}>
+              Demo wrong
+            </button>
+            <button type="button" onClick={showCorrectDemo}>
+              Demo right
+            </button>
           </div>
         )}
+
+        {micError && <p className="system-note">Microphone: {micError}</p>}
       </main>
 
-      {/* Subtle Developer Debug Toggle */}
-      <footer className="dev-footer">
-        <button className="debug-toggle" onClick={() => setShowDebug(!showDebug)}>
-          ⚙️ Developer Tools ({isServerConnected ? 'Backend Connected' : 'Backend Offline'})
+      <footer className="parent-panel">
+        <button className="debug-toggle" type="button" onClick={() => setShowDebug(!showDebug)}>
+          Parent/dev: demo mode on
         </button>
 
         {showDebug && (
-          <div className="glass-card debug-card">
-            <h3>System Status</h3>
+          <div className="debug-card">
             <p>
-              Whisper C++ Server: <strong>{isServerConnected ? 'CONNECTED' : 'OFFLINE'}</strong> on <code>localhost:8080</code>
+              Demo scoring: <strong>on</strong>. Use <code>Demo wrong</code> and <code>Demo right</code>.
+            </p>
+            <p>
+              Local Whisper server: <strong>{isServerConnected ? 'connected' : 'offline'}</strong> at <code>127.0.0.1:8080</code>
             </p>
             {heardText && (
               <p>
-                Raw Whisper Transcription: <code>"{heardText}"</code>
+                Last transcript: <code>{heardText}</code>
               </p>
             )}
             <p>
-              Real-time Phoneme Class: <code>{currentPhoneme}</code>
+              Live analyzer: <code>{soundClass}</code>
             </p>
-            {!isServerConnected && (
-              <div className="dev-instructions">
-                <p>Run these commands in separate terminals to start the local backend:</p>
-                <code>bun run whisper:setup</code>
-                <br />
-                <code>bun run whisper:server</code>
-              </div>
+            {!isServerConnected && !DEMO_ENABLED && (
+              <p>Run <code>bun run whisper:server</code> after setting up <code>whisper.cpp</code>.</p>
             )}
           </div>
         )}

@@ -1,0 +1,58 @@
+import type { CourseModule } from '../types';
+
+export const grammarModule: CourseModule = {
+  id: 'grammar',
+  title: 'Tiny Talk Town',
+  planet: 'Sentence Town',
+  mission: 'Help Zibi build tiny Earth ideas with pictures.',
+  colorClass: 'pink',
+  lessons: [
+    {
+      id: 'grammar-noun',
+      moduleId: 'grammar',
+      type: 'grammar-choice',
+      title: 'Thing Word',
+      storyPrompt: 'Zibi points at a thing. Earth kids call thing words nouns.',
+      rewardName: 'Naming Seed',
+      prompt: 'Zibi sees a blank.',
+      correctChoiceId: 'rocket',
+      successPrompt: 'Rocket is a thing word.',
+      retryPrompt: 'Pick the thing Zibi can see.',
+      choices: [
+        { id: 'rocket', label: 'rocket', helper: 'a thing', art: 'rocket' },
+        { id: 'jump', label: 'jump', helper: 'an action', art: 'jump' },
+        { id: 'bright', label: 'bright', helper: 'a describing word', art: 'sun' },
+      ],
+    },
+    {
+      id: 'grammar-action',
+      moduleId: 'grammar',
+      type: 'grammar-choice',
+      title: 'Action Word',
+      storyPrompt: 'Zibi wants to move like an Earth kid.',
+      rewardName: 'Action Seed',
+      prompt: 'What can Zibi do?',
+      correctChoiceId: 'jump',
+      successPrompt: 'Jump is an action word.',
+      retryPrompt: 'Pick the word that shows moving.',
+      choices: [
+        { id: 'ship', label: 'ship', helper: 'a thing', art: 'ship' },
+        { id: 'jump', label: 'jump', helper: 'an action', art: 'jump' },
+        { id: 'green', label: 'green', helper: 'a color', art: 'leaf' },
+      ],
+    },
+    {
+      id: 'grammar-sentence',
+      moduleId: 'grammar',
+      type: 'sentence-build',
+      title: 'First Message',
+      storyPrompt: 'Zibi is ready to send one clear Earth sentence.',
+      rewardName: 'Message Seed',
+      prompt: 'Tap the words in order.',
+      tiles: ['hop', 'Zibi', 'moon', 'can'],
+      correctSequence: ['Zibi', 'can', 'hop'],
+      successPrompt: 'Great sentence. Zibi can hop.',
+      retryPrompt: 'Start with who, then can, then the action.',
+    },
+  ],
+};

@@ -1,0 +1,62 @@
+import type { CourseModule } from '../types';
+
+export const lettersModule: CourseModule = {
+  id: 'letters',
+  title: 'Letter Lagoon',
+  planet: 'Glow Letter Lagoon',
+  mission: 'Match Earth sounds to big bright letters.',
+  colorClass: 'blue',
+  lessons: [
+    {
+      id: 'letter-s',
+      moduleId: 'letters',
+      type: 'letter-choice',
+      title: 'Find S',
+      storyPrompt: 'Zibi hears ssss from a star trail.',
+      rewardName: 'Star Trail Seed',
+      prompt: 'Which letter makes ssss?',
+      correctChoiceId: 's',
+      successPrompt: 'Yes. S makes the star sound.',
+      retryPrompt: 'Look for the curvy letter that slides like air.',
+      choices: [
+        { id: 's', label: 'S', helper: 'star sound', art: 'star' },
+        { id: 'm', label: 'M', helper: 'moon hum', art: 'moon' },
+        { id: 'p', label: 'P', helper: 'pop pod', art: 'planet' },
+      ],
+    },
+    {
+      id: 'letter-m',
+      moduleId: 'letters',
+      type: 'letter-choice',
+      title: 'Find M',
+      storyPrompt: 'The moon garden hums mmmm.',
+      rewardName: 'Moon Garden Seed',
+      prompt: 'Which letter makes mmmm?',
+      correctChoiceId: 'm',
+      successPrompt: 'Yes. M makes the moon hum.',
+      retryPrompt: 'Find the letter with mountain bumps.',
+      choices: [
+        { id: 'a', label: 'A', helper: 'open air', art: 'sun' },
+        { id: 'm', label: 'M', helper: 'moon hum', art: 'moon' },
+        { id: 't', label: 'T', helper: 'tap top', art: 'path' },
+      ],
+    },
+    {
+      id: 'letter-match-a',
+      moduleId: 'letters',
+      type: 'letter-choice',
+      title: 'Big And Little A',
+      storyPrompt: 'Zibi finds a big A and needs its small Earth friend.',
+      rewardName: 'Alphabet Seed',
+      prompt: 'Which little letter matches A?',
+      correctChoiceId: 'a',
+      successPrompt: 'Yes. A and a are letter friends.',
+      retryPrompt: 'Choose the little a.',
+      choices: [
+        { id: 'o', label: 'o', helper: 'round o', art: 'planet' },
+        { id: 'a', label: 'a', helper: 'little a', art: 'leaf' },
+        { id: 'p', label: 'p', helper: 'pop p', art: 'rocket' },
+      ],
+    },
+  ],
+};

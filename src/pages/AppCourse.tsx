@@ -101,7 +101,6 @@ function CourseMap({
   totalLessons,
   shipProgress,
   allDone,
-  isServerConnected,
   onOpenModule,
   onOpenLesson,
   onOpenRewards,
@@ -109,12 +108,6 @@ function CourseMap({
 }: AppCourseProps) {
   const courseNodes: PathNode[] = [...REAL_COURSE_MODULES, HOME_PLANET_NODE];
 
-  // Detect Zibi's current position
-  const activePlanetIndex = REAL_COURSE_MODULES.findIndex(m => {
-    const moduleDone = m.lessons.filter(l => completedLessons.has(l.id)).length;
-    return moduleDone < m.lessons.length;
-  });
-  const currentActiveModuleId = activePlanetIndex !== -1 ? REAL_COURSE_MODULES[activePlanetIndex].id : 'home-planet';
   const hasUnlockedHome = completedCount >= totalLessons;
 
   return (
@@ -179,42 +172,38 @@ function CourseMap({
 
       <motion.section className="flight-path-section" variants={fadeUp}>
         <motion.h2 className="orbit-heading" variants={fadeUpFast}>✦ Constellation Orbit Trail ✦</motion.h2>
-        <motion.p className="path-subtitle" variants={fadeUpFast}>Follow the orbital trail to repair Zibi's ship and fly home!</motion.p>
         <div className="flight-path-container">
-          <svg className="flight-path-svg" viewBox="0 0 800 600" preserveAspectRatio="none">
-            <defs>
-              <radialGradient id="nodeGlow" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stopColor="var(--yellow)" stopOpacity="0.6" />
-                <stop offset="100%" stopColor="var(--yellow)" stopOpacity="0" />
-              </radialGradient>
-            </defs>
-            <path
-              className="flight-path-curve"
-              d="M145 80 C480 120, 480 120, 655 180 C480 240, 480 240, 145 300 C480 360, 480 360, 655 420 C480 480, 480 480, 145 520"
-              fill="none"
-            />
-            <motion.circle cx="145" cy="80" r="18" fill="url(#nodeGlow)" opacity="0.5"
-              animate={{ opacity: [0.3, 0.7, 0.3], r: [16, 20, 16] }}
-              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: 0 }} />
-            <motion.circle cx="655" cy="180" r="18" fill="url(#nodeGlow)" opacity="0.5"
-              animate={{ opacity: [0.3, 0.7, 0.3], r: [16, 20, 16] }}
-              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: 0.6 }} />
-            <motion.circle cx="145" cy="300" r="18" fill="url(#nodeGlow)" opacity="0.5"
-              animate={{ opacity: [0.3, 0.7, 0.3], r: [16, 20, 16] }}
-              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: 1.2 }} />
-            <motion.circle cx="655" cy="420" r="18" fill="url(#nodeGlow)" opacity="0.5"
-              animate={{ opacity: [0.3, 0.7, 0.3], r: [16, 20, 16] }}
-              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: 1.8 }} />
-            <motion.circle cx="145" cy="520" r="18" fill="url(#nodeGlow)" opacity="0.5"
-              animate={{ opacity: [0.3, 0.7, 0.3], r: [16, 20, 16] }}
-              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: 2.4 }} />
-          </svg>
+          <motion.div className="flight-path-line"
+            initial={{ height: 0 }}
+            animate={{ height: '100%' }}
+            transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}>
+            <span className="path-marker" style={{ top: '0%' }}>0%</span>
+            <span className="path-marker" style={{ top: '25%' }}>25%</span>
+            <span className="path-marker" style={{ top: '50%' }}>50%</span>
+            <span className="path-marker" style={{ top: '75%' }}>75%</span>
+            <span className="path-marker" style={{ top: '100%' }}>100%</span>
+          </motion.div>
+
+          <motion.div className="ship-avatar-indicator animate-float"
+            style={{ top: `${shipProgress}%` }}
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ type: 'spring', stiffness: 200, damping: 12 }}>
+            <div className="path-ship-wrap" aria-hidden="true">
+              <div className="path-ship">
+                <span className="path-ship-window" />
+                <span className="path-ship-fin left" />
+                <span className="path-ship-fin right" />
+                <span className="path-ship-flame" />
+              </div>
+            </div>
+            <span className="indicator-tooltip">Zibi is here!</span>
+          </motion.div>
           
           {courseNodes.map((module, index) => {
             const side = index % 2 === 0 ? 'left' : 'right';
             const isHomePlanet = module.id === 'home-planet';
             const isLocked = isHomePlanet && !hasUnlockedHome;
-            const isCurrentActive = currentActiveModuleId === module.id;
 
             const moduleDoneCount = !isHomePlanet ? module.lessons.filter(lesson => completedLessons.has(lesson.id)).length : 0;
             const totalInModule = !isHomePlanet ? module.lessons.length : 0;
@@ -222,29 +211,9 @@ function CourseMap({
             return (
               <motion.div
                 key={module.id}
-                className={`path-node-wrap ${side} ${isCurrentActive ? 'active' : ''} ${isLocked ? 'locked' : ''}`}
+                className={`path-node-wrap ${side} ${isLocked ? 'locked' : ''}`}
                 variants={fadeUpFast}
               >
-                <AnimatePresence>
-                  {isCurrentActive && (
-                    <motion.div className="ship-avatar-indicator animate-float"
-                      initial={{ opacity: 0, scale: 0.5 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.5 }}
-                      transition={{ type: 'spring', stiffness: 200, damping: 12 }}>
-                      <div className="path-ship-wrap" aria-hidden="true">
-                        <div className="path-ship">
-                          <span className="path-ship-window" />
-                          <span className="path-ship-fin left" />
-                          <span className="path-ship-fin right" />
-                          <span className="path-ship-flame" />
-                        </div>
-                      </div>
-                      <span className="indicator-tooltip">Zibi is here!</span>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-                
                 <motion.div className={`path-planet-bubble color-${module.colorClass}`}
                   whileHover={{ scale: 1.03, rotate: 1, boxShadow: '8px 8px 0 #172033' }}
                   transition={{ type: 'spring', stiffness: 200, damping: 12 }}>
@@ -297,6 +266,20 @@ function CourseMap({
               </motion.div>
             );
           })}
+
+          <AnimatePresence>
+            {allDone && (
+              <motion.div className="orbit-complete-banner"
+                initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 20, scale: 0.9 }}
+                transition={{ type: 'spring', stiffness: 150, damping: 12 }}>
+                <span>🎉</span>
+                <strong>Ship Repaired! You've Finished!</strong>
+                <span>🛸</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </motion.section>
     </motion.main>

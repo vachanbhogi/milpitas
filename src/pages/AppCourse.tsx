@@ -110,7 +110,6 @@ function CourseMap({
   allDone,
   onOpenModule,
   onOpenLesson,
-  onOpenRewards,
   onRestart,
 }: AppCourseProps) {
   const courseNodes: PathNode[] = [...REAL_COURSE_MODULES, HOME_PLANET_NODE];
@@ -120,6 +119,17 @@ function CourseMap({
   // Find next required lesson to pulse it on the map
   const allLessons = REAL_COURSE_MODULES.flatMap(m => m.lessons);
   const nextRequiredLesson = allLessons.find(lesson => !completedLessons.has(lesson.id)) || null;
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (nextRequiredLesson) {
+        speakText("Press the big button to start your next mission!");
+      } else {
+        speakText("You finished all missions! Press the button to play again.");
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [nextRequiredLesson]);
 
   return (
     <motion.main className="course-layout" initial="hidden" animate="visible" variants={stagger}>
@@ -131,15 +141,78 @@ function CourseMap({
             Welcome to <strong>Mumble</strong>! Speak phonics sounds and guide Zibi
             along the stellar orbit pathway back to his Home Planet.
           </motion.p>
-          <motion.div className="hero-actions" variants={fadeUpFast}>
-            <motion.button className="primary-action" type="button" onClick={() => onOpenModule('phonics')}
-              whileHover={{ scale: 1.05, boxShadow: '7px 7px 0 #172033' }} whileTap={{ scale: 0.96 }} transition={springTap}>
-              🚀 Start Orbit
-            </motion.button>
-            <motion.button className="secondary-action" type="button" onClick={onOpenRewards}
-              whileHover={{ scale: 1.05, boxShadow: '7px 7px 0 #172033' }} whileTap={{ scale: 0.96 }} transition={springTap}>
-              🏆 Rewards Path
-            </motion.button>
+          <motion.div className="hero-actions" variants={fadeUpFast} style={{ display: 'grid', gap: '16px', justifyItems: 'start' }}>
+            {nextRequiredLesson ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
+                <motion.button
+                  className="primary-action giant-start-btn"
+                  type="button"
+                  onClick={() => onOpenLesson(nextRequiredLesson)}
+                  whileHover={{ scale: 1.05, boxShadow: '12px 12px 0 #172033' }}
+                  whileTap={{ scale: 0.96, boxShadow: '4px 4px 0 #172033' }}
+                  transition={springTap}
+                  style={{ width: 'fit-content' }}
+                >
+                  👉 PLAY NEXT!
+                </motion.button>
+                <button
+                  type="button"
+                  className="audio-guide-btn"
+                  onClick={() => speakText("Press the big button to start your next mission!")}
+                  style={{
+                    background: 'var(--yellow-soft)',
+                    border: '3px solid var(--line)',
+                    borderRadius: '999px',
+                    padding: '8px 16px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    boxShadow: '3px 3px 0 var(--line)',
+                    width: 'fit-content',
+                    fontSize: '1.1rem'
+                  }}
+                >
+                  🔊 Hear instructions: "Press the big button to play!"
+                </button>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
+                <motion.button
+                  className="primary-action giant-start-btn"
+                  type="button"
+                  onClick={onRestart}
+                  whileHover={{ scale: 1.05, boxShadow: '12px 12px 0 #172033' }}
+                  whileTap={{ scale: 0.96, boxShadow: '4px 4px 0 #172033' }}
+                  transition={springTap}
+                  style={{ width: 'fit-content' }}
+                >
+                  🔄 PLAY AGAIN!
+                </motion.button>
+                <button
+                  type="button"
+                  className="audio-guide-btn"
+                  onClick={() => speakText("You finished all missions! Press the button to play again.")}
+                  style={{
+                    background: 'var(--yellow-soft)',
+                    border: '3px solid var(--line)',
+                    borderRadius: '999px',
+                    padding: '8px 16px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    boxShadow: '3px 3px 0 var(--line)',
+                    width: 'fit-content',
+                    fontSize: '1.1rem'
+                  }}
+                >
+                  🔊 Hear instructions: "Play again!"
+                </button>
+              </div>
+            )}
           </motion.div>
         </motion.div>
 

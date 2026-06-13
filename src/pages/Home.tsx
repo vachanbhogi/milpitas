@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { MascotScene } from '../components/MascotScene';
-import { playSynthesizedPhonics } from '../audioUtils';
+import { playSynthesizedPhonics, speakText } from '../audioUtils';
 
 interface HomeProps {
   isServerConnected: boolean | null;
@@ -29,6 +29,13 @@ const fadeUpFast: Variants = {
 
 export function Home({ isServerConnected, onOpenApp }: HomeProps) {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      speakText("Just press start!");
+    }, 500);
+    return () => clearTimeout(timer);
+  }, []);
 
   const demoSounds = [
     { target: 'S', label: 'Hissy Air', desc: 'Custom noise node with bandpass sweep at 6.5kHz' },
@@ -69,17 +76,37 @@ export function Home({ isServerConnected, onOpenApp }: HomeProps) {
           <motion.p className="pitch-tagline" variants={fadeUpFast}>
             Empowering pre-readers with privacy-first, voice-native speech game loops and real-time browser formant synthesis.
           </motion.p>
-          <motion.div className="hero-actions" variants={fadeUpFast}>
+          <motion.div className="hero-actions" variants={fadeUpFast} style={{ display: 'grid', gap: '16px', justifyItems: 'start' }}>
             <motion.button
-              className="primary-action"
+              className="primary-action giant-start-btn"
               type="button"
               onClick={onOpenApp}
-              whileHover={{ scale: 1.05, boxShadow: '7px 7px 0 #172033' }}
-              whileTap={{ scale: 0.96, boxShadow: '2px 2px 0 #172033' }}
+              whileHover={{ scale: 1.05, boxShadow: '12px 12px 0 #172033' }}
+              whileTap={{ scale: 0.96, boxShadow: '4px 4px 0 #172033' }}
               transition={springTap}
             >
-              🚀 Launch Sound Safari Demo
+              👉 START!
             </motion.button>
+            <button
+              type="button"
+              className="audio-guide-btn"
+              onClick={() => speakText("Just press start!")}
+              style={{
+                background: 'var(--yellow-soft)',
+                border: '3px solid var(--line)',
+                borderRadius: '999px',
+                padding: '8px 16px',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                boxShadow: '3px 3px 0 var(--line)',
+                fontSize: '1.2rem'
+              }}
+            >
+              🔊 Hear instructions: "Just press start!"
+            </button>
           </motion.div>
         </motion.div>
         <motion.div variants={fadeUp}>

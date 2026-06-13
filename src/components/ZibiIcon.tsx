@@ -1,0 +1,42 @@
+export function ZibiIcon({ className = '', size = 32 }: { className?: string; size?: number }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 100 100"
+      width={size}
+      height={size}
+      className={className}
+      aria-hidden="true"
+      style={{ display: 'block' }}
+    >
+      {/* Antennas */}
+      <line x1="38" y1="30" x2="32" y2="15" stroke="#172033" strokeWidth="4" strokeLinecap="round" />
+      <circle cx="32" cy="15" r="5" fill="#ffd95a" stroke="#172033" strokeWidth="4" />
+      
+      <line x1="62" y1="30" x2="68" y2="15" stroke="#172033" strokeWidth="4" strokeLinecap="round" />
+      <circle cx="68" cy="15" r="5" fill="#ffd95a" stroke="#172033" strokeWidth="4" />
+
+      {/* Arms */}
+      <ellipse cx="22" cy="62" rx="10" ry="6" fill="#84f5a2" stroke="#172033" strokeWidth="4" transform="rotate(-20 22 62)" />
+      <ellipse cx="78" cy="62" rx="10" ry="6" fill="#84f5a2" stroke="#172033" strokeWidth="4" transform="rotate(20 78 62)" />
+
+      {/* Head/Body */}
+      <rect x="25" y="30" width="50" height="52" rx="22" fill="#84f5a2" stroke="#172033" strokeWidth="4" />
+
+      {/* Belly */}
+      <ellipse cx="50" cy="72" rx="14" ry="7" fill="#ffffff" stroke="#172033" strokeWidth="3" opacity="0.9" />
+
+      {/* Eyes */}
+      <circle cx="40" cy="46" r="8" fill="#ffffff" stroke="#172033" strokeWidth="4" />
+      <circle cx="40" cy="46" r="3.5" fill="#172033" />
+      <circle cx="38.5" cy="44.5" r="1.2" fill="#ffffff" />
+      
+      <circle cx="60" cy="46" r="8" fill="#ffffff" stroke="#172033" strokeWidth="4" />
+      <circle cx="60" cy="46" r="3.5" fill="#172033" />
+      <circle cx="58.5" cy="44.5" r="1.2" fill="#ffffff" />
+
+      {/* Smile */}
+      <path d="M 43 58 Q 50 64 57 58" fill="none" stroke="#172033" strokeWidth="4" strokeLinecap="round" />
+    </svg>
+  );
+}

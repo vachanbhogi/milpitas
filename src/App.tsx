@@ -24,6 +24,7 @@ import {
 import { Home } from './pages/Home';
 import { AppCourse } from './pages/AppCourse';
 import { Rewards } from './pages/Rewards';
+import { ZibiIcon } from './components/ZibiIcon';
 
 const EMPTY_VOICE: VoiceSnapshot = {
   soundClass: 'quiet',
@@ -503,7 +504,9 @@ function App() {
     <div className="app-shell">
       <header className="app-header">
         <button className="brand-button" type="button" onClick={() => setView('home')}>
-          <span className="brand-mark" aria-hidden="true">M</span>
+          <span className="brand-mark" aria-hidden="true" style={{ background: 'transparent', border: 'none', boxShadow: 'none', padding: 0 }}>
+            <ZibiIcon size={48} />
+          </span>
           <span>
             <strong>Mumble</strong>
             <small>Zibi's Orbit Journey</small>

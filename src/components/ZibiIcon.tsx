@@ -1,4 +1,4 @@
-export function ZibiIcon({ className = '', size = 32 }: { className?: string; size?: number }) {
+export function ZibiIcon({ className = '', size = 32, equippedItem = null }: { className?: string; size?: number; equippedItem?: string | null }) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -37,6 +37,38 @@ export function ZibiIcon({ className = '', size = 32 }: { className?: string; si
 
       {/* Smile */}
       <path d="M 43 58 Q 50 64 57 58" fill="none" stroke="#172033" strokeWidth="4" strokeLinecap="round" />
+
+      {/* Redesigned Space Helmet overlay */}
+      {equippedItem === 'helmet' && (
+        <>
+          {/* Earmuffs */}
+          <rect x="22" y="44" width="7" height="15" rx="3.5" fill="#ff9b45" stroke="#172033" strokeWidth="3.5" />
+          <rect x="71" y="44" width="7" height="15" rx="3.5" fill="#ff9b45" stroke="#172033" strokeWidth="3.5" />
+          {/* Antenna */}
+          <line x1="25" y1="44" x2="20" y2="30" stroke="#172033" strokeWidth="3.5" strokeLinecap="round" />
+          <circle cx="20" cy="30" r="3.5" fill="#ffd84d" stroke="#172033" strokeWidth="3.5" />
+          {/* Base collar */}
+          <ellipse cx="50" cy="80" rx="26" ry="6" fill="#ffffff" stroke="#172033" strokeWidth="4" />
+          {/* Visor bubble */}
+          <circle cx="50" cy="52" r="32" fill="rgba(93, 215, 255, 0.25)" stroke="#172033" strokeWidth="4" />
+          {/* Shine glare */}
+          <path d="M 28 36 A 24 24 0 0 1 72 36" fill="none" stroke="#ffffff" strokeWidth="3.5" opacity="0.75" strokeLinecap="round" />
+        </>
+      )}
+
+      {/* Cosmic Star Crown overlay */}
+      {equippedItem === 'crown' && (
+        <>
+          {/* Crown pointed body */}
+          <path d="M 32 30 L 32 12 L 41 22 L 50 6 L 59 22 L 68 12 L 68 30 Q 50 33 32 30 Z" fill="#ffd84d" stroke="#172033" strokeWidth="4" strokeLinejoin="round" />
+          {/* Peak Gems */}
+          <circle cx="32" cy="10" r="3.5" fill="#5dd7ff" stroke="#172033" strokeWidth="2.5" />
+          <circle cx="50" cy="4.5" r="4.5" fill="#ff78b7" stroke="#172033" strokeWidth="2.5" />
+          <circle cx="68" cy="10" r="3.5" fill="#5dd7ff" stroke="#172033" strokeWidth="2.5" />
+          {/* Center crystal diamond */}
+          <polygon points="50,18 54,22 50,26 46,22" fill="#5dd7ff" stroke="#172033" strokeWidth="2.5" />
+        </>
+      )}
     </svg>
   );
 }

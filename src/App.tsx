@@ -100,6 +100,18 @@ function App() {
   const [bestVoice, setBestVoice] = useState<VoiceSnapshot>(EMPTY_VOICE);
   const [sparkles, setSparkles] = useState<{ id: number; color: string; shape: 'circle' | 'square' | 'star'; x: number; y: number; scale: number }[]>([]);
 
+  const [glowCoins, setGlowCoins] = useState<number>(() => {
+    const saved = localStorage.getItem('glowCoins');
+    return saved ? parseInt(saved, 10) : 0;
+  });
+  const [purchasedItems, setPurchasedItems] = useState<string[]>(() => {
+    const saved = localStorage.getItem('purchasedItems');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [equippedItem, setEquippedItem] = useState<string | null>(() => {
+    return localStorage.getItem('equippedItem') || null;
+  });
+
   const bestVoiceRef = useRef<VoiceSnapshot>(EMPTY_VOICE);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const recognitionTranscriptRef = useRef<string>('');
@@ -186,6 +198,12 @@ function App() {
       if (prev.has(lesson.id)) return prev;
       const next = new Set(prev);
       next.add(lesson.id);
+      // Award 10 Glow Coins
+      setGlowCoins(coins => {
+        const nextCoins = coins + 10;
+        localStorage.setItem('glowCoins', nextCoins.toString());
+        return nextCoins;
+      });
       return next;
     });
   };
@@ -233,7 +251,35 @@ function App() {
     setCompletedLessons(new Set());
     setActiveLessonId(COURSE_MODULES[0].lessons[0].id);
     resetLessonInteraction(COURSE_MODULES[0].lessons[0], false);
+    setGlowCoins(0);
+    setPurchasedItems([]);
+    setEquippedItem(null);
+    localStorage.setItem('glowCoins', '0');
+    localStorage.setItem('purchasedItems', '[]');
+    localStorage.setItem('equippedItem', '');
     setView('course');
+  };
+
+  const handleBuyItem = (itemId: string, cost: number) => {
+    if (glowCoins >= cost) {
+      setGlowCoins(prev => {
+        const next = prev - cost;
+        localStorage.setItem('glowCoins', next.toString());
+        return next;
+      });
+      setPurchasedItems(prev => {
+        const next = [...prev, itemId];
+        localStorage.setItem('purchasedItems', JSON.stringify(next));
+        return next;
+      });
+      setEquippedItem(itemId);
+      localStorage.setItem('equippedItem', itemId);
+    }
+  };
+
+  const handleEquipItem = (itemId: string | null) => {
+    setEquippedItem(itemId);
+    localStorage.setItem('equippedItem', itemId || '');
   };
 
   const handleStartRecording = async () => {
@@ -505,7 +551,7 @@ function App() {
       <header className="app-header">
         <button className="brand-button" type="button" onClick={() => setView('home')}>
           <span className="brand-mark" aria-hidden="true" style={{ background: 'transparent', border: 'none', boxShadow: 'none', padding: 0 }}>
-            <ZibiIcon size={48} />
+            <ZibiIcon size={48} equippedItem={equippedItem} />
           </span>
           <span>
             <strong>Mumble</strong>
@@ -525,9 +571,15 @@ function App() {
           </button>
         </nav>
 
-        <div className="star-counter" aria-label={`${completedCount} Scoin Seeds`}>
-          <span aria-hidden="true" />
-          <strong>{completedCount} Seeds</strong>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <div className="star-counter" aria-label={`${completedCount} Scoin Seeds`}>
+            <span aria-hidden="true" />
+            <strong>{completedCount} Seeds</strong>
+          </div>
+          <div className="coin-counter" aria-label={`${glowCoins} Glow Coins`}>
+            <span className="coin-icon" aria-hidden="true" />
+            <strong>{glowCoins} Coins</strong>
+          </div>
         </div>
       </header>
 
@@ -535,6 +587,7 @@ function App() {
         <Home 
           isServerConnected={isServerConnected} 
           onOpenApp={() => setView('course')} 
+          equippedItem={equippedItem}
         />
       )}
 
@@ -574,6 +627,7 @@ function App() {
           onClearSentence={clearSentence}
           onCompleteWriting={handleCompleteWriting}
           onNext={goNext}
+          equippedItem={equippedItem}
         />
       )}
 
@@ -585,6 +639,11 @@ function App() {
           onOpenLesson={goToLesson}
           onRestart={restartCourse}
           shipProgress={shipProgress}
+          glowCoins={glowCoins}
+          purchasedItems={purchasedItems}
+          equippedItem={equippedItem}
+          onBuyItem={handleBuyItem}
+          onEquipItem={handleEquipItem}
         />
       )}
 

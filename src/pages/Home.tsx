@@ -6,6 +6,7 @@ import { playSynthesizedPhonics, speakText } from '../audioUtils';
 interface HomeProps {
   isServerConnected: boolean | null;
   onOpenApp: () => void;
+  equippedItem: string | null;
 }
 
 const springHover = { type: 'spring' as const, stiffness: 300, damping: 12 };
@@ -27,7 +28,7 @@ const fadeUpFast: Variants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.23, 1, 0.32, 1] as [number, number, number, number] } },
 };
 
-export function Home({ isServerConnected, onOpenApp }: HomeProps) {
+export function Home({ isServerConnected, onOpenApp, equippedItem }: HomeProps) {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
 
   useEffect(() => {
@@ -110,7 +111,7 @@ export function Home({ isServerConnected, onOpenApp }: HomeProps) {
           </motion.div>
         </motion.div>
         <motion.div variants={fadeUp}>
-          <MascotScene progress={75} mood="happy" />
+          <MascotScene progress={75} mood="happy" equippedItem={equippedItem} />
         </motion.div>
       </motion.section>
 

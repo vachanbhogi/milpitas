@@ -63,6 +63,7 @@ interface AppCourseProps {
   shipProgress: number;
   allDone: boolean;
   isServerConnected: boolean | null;
+  equippedItem: string | null;
   onOpenModule: (moduleId: ModuleId) => void;
   onOpenLesson: (lesson: Lesson) => void;
   onOpenRewards: () => void;
@@ -112,6 +113,7 @@ function CourseMap({
   onOpenModule,
   onOpenLesson,
   onRestart,
+  equippedItem,
 }: AppCourseProps) {
   const courseNodes: PathNode[] = [...REAL_COURSE_MODULES, HOME_PLANET_NODE];
 
@@ -218,7 +220,7 @@ function CourseMap({
         </motion.div>
 
         <motion.div variants={fadeUp}>
-          <MascotScene progress={shipProgress} mood={allDone ? 'launch' : 'happy'} />
+          <MascotScene progress={shipProgress} mood={allDone ? 'launch' : 'happy'} equippedItem={equippedItem} />
         </motion.div>
       </motion.section>
 
@@ -403,6 +405,7 @@ interface LessonScreenProps {
   selectedChoiceId: string | null;
   selectedTiles: string[];
   shipProgress: number;
+  equippedItem: string | null;
   onBack: () => void;
   onStartRecording: () => void;
   onStopRecording: () => void;
@@ -440,6 +443,7 @@ function LessonScreen({
   onClearSentence,
   onCompleteWriting,
   onNext,
+  equippedItem,
 }: LessonScreenProps) {
   const meterScale = Math.min(Math.max(energy * 5, 0.04), 1);
   const isComplete = completedLessons.has(lesson.id);
@@ -614,7 +618,7 @@ function LessonScreen({
               {status === 'recording' ? 'Listening...' : status === 'checking' ? 'Translating...' : isComplete ? 'Success!' : 'Ready'}
             </motion.p>
           </div>
-          <MascotScene progress={shipProgress} mood={mascotMood} />
+          <MascotScene progress={shipProgress} mood={mascotMood} equippedItem={equippedItem} />
         </motion.section>
       </div>
     </motion.main>

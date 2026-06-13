@@ -1,9 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useMicrophone } from './hooks/useMicrophone';
 import { useLiveVoiceAnalyzer } from './hooks/useLiveVoiceAnalyzer';
-import { playSynthesizedPhonics, encodeFloat32ArrayToWav, speakText } from './audioUtils';
+import { playSynthesizedPhonics, speakText } from './audioUtils';
 import { COURSE_MODULES } from './course/courseModules';
-import { getSoundLabel, scorePhonemeAttempt, scoreWordAttempt } from './utils/phonicsScoring';
+import { scoreWordAttempt } from './soundSafari/scoring';
+import { transcribeAttempt, type TranscriptionSource } from './soundSafari/transcribeAttempt';
+import { checkWhisperHealth } from './soundSafari/whisperClient';
+import { useSpeechRecognition } from './soundSafari/useSpeechRecognition';
 import './App.css';
 
 // Page and Component Imports
@@ -16,10 +19,7 @@ import {
   type PhonicsLesson,
   type ChoiceLesson,
   type SentenceLesson,
-  type WritingLesson,
-  type SpeechRecognition,
-  type SpeechRecognitionEvent,
-  type SpeechRecognitionErrorEvent
+  type WritingLesson
 } from './types';
 import { Home } from './pages/Home';
 import { AppCourse } from './pages/AppCourse';
@@ -94,18 +94,19 @@ function App() {
   const [lessonStatus, setLessonStatus] = useState<LessonStatus>('idle');
   const [feedbackText, setFeedbackText] = useState<string>('Choose a mission to help Zibi.');
   const [heardText, setHeardText] = useState<string>('');
+  const [heardSource, setHeardSource] = useState<TranscriptionSource>('none');
   const [selectedChoiceId, setSelectedChoiceId] = useState<string | null>(null);
   const [selectedTiles, setSelectedTiles] = useState<string[]>([]);
   const [isServerConnected, setIsServerConnected] = useState<boolean | null>(null);
   const [bestVoice, setBestVoice] = useState<VoiceSnapshot>(EMPTY_VOICE);
   const [sparkles, setSparkles] = useState<{ id: number; color: string; shape: 'circle' | 'square' | 'star'; x: number; y: number; scale: number }[]>([]);
+  const [isFirstAttempt, setIsFirstAttempt] = useState(true);
 
   const bestVoiceRef = useRef<VoiceSnapshot>(EMPTY_VOICE);
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
-  const recognitionTranscriptRef = useRef<string>('');
 
   const { isListening, isSupported, error: micError, startRecording, stopRecording, setOnChunk } = useMicrophone();
   const { soundClass, energy, confidence, analyze, reset } = useLiveVoiceAnalyzer();
+  const { startRecognition, stopRecognition, getTranscript, resetTranscript } = useSpeechRecognition();
 
   const allLessons = useMemo(() => COURSE_MODULES.flatMap(module => module.lessons), []);
   const activeModule = COURSE_MODULES.find(module => module.id === activeModuleId) ?? COURSE_MODULES[0];
@@ -141,21 +142,7 @@ function App() {
   }, [setOnChunk, analyze]);
 
   useEffect(() => {
-    const checkServer = async () => {
-      try {
-        const controller = new AbortController();
-        const id = window.setTimeout(() => controller.abort(), 1200);
-        const res = await fetch('http://127.0.0.1:8080/inference', {
-          method: 'OPTIONS',
-          signal: controller.signal,
-        });
-        window.clearTimeout(id);
-        setIsServerConnected(res.ok || [400, 404, 405].includes(res.status));
-      } catch {
-        setIsServerConnected(false);
-      }
-    };
-    checkServer();
+    checkWhisperHealth().then(setIsServerConnected);
   }, [activeLessonId]);
 
   useEffect(() => {
@@ -190,12 +177,23 @@ function App() {
     });
   };
 
+  const markLessonIncomplete = (lesson: Lesson) => {
+    setCompletedLessons(prev => {
+      if (!prev.has(lesson.id)) return prev;
+      const next = new Set(prev);
+      next.delete(lesson.id);
+      return next;
+    });
+  };
+
   const resetLessonInteraction = (lesson: Lesson, complete = completedLessons.has(lesson.id)) => {
     bestVoiceRef.current = EMPTY_VOICE;
     setBestVoice(EMPTY_VOICE);
     setHeardText('');
+    setHeardSource('none');
     setSelectedChoiceId(null);
     setSelectedTiles([]);
+    setIsFirstAttempt(true);
     reset();
 
     if (complete) {
@@ -240,40 +238,11 @@ function App() {
     bestVoiceRef.current = EMPTY_VOICE;
     setBestVoice(EMPTY_VOICE);
     setHeardText('');
+    setHeardSource('none');
+    resetTranscript();
     reset();
 
-    // Start browser SpeechRecognition if available
-    const SpeechRecognitionAPI = (window as unknown as { SpeechRecognition?: new () => SpeechRecognition, webkitSpeechRecognition?: new () => SpeechRecognition }).SpeechRecognition || (window as unknown as { SpeechRecognition?: new () => SpeechRecognition, webkitSpeechRecognition?: new () => SpeechRecognition }).webkitSpeechRecognition;
-    if (SpeechRecognitionAPI) {
-      try {
-        const rec = new SpeechRecognitionAPI();
-        rec.continuous = false;
-        rec.interimResults = false;
-        rec.lang = 'en-US';
-        
-        let localTranscript = '';
-        rec.onresult = (event: SpeechRecognitionEvent) => {
-          const result = event.results[event.results.length - 1];
-          if (result && result[0]) {
-            localTranscript = result[0].transcript;
-            recognitionTranscriptRef.current = localTranscript;
-            console.log('Browser SpeechRecognition heard:', localTranscript);
-          }
-        };
-        rec.onerror = (event: SpeechRecognitionErrorEvent) => {
-          console.warn('Browser SpeechRecognition error:', event.error);
-        };
-        rec.onend = () => {
-          console.log('Browser SpeechRecognition ended');
-        };
-        
-        recognitionTranscriptRef.current = '';
-        recognitionRef.current = rec;
-        rec.start();
-      } catch (e) {
-        console.error('Failed to start browser SpeechRecognition:', e);
-      }
-    }
+    startRecognition();
 
     const started = await startRecording();
     if (started) {
@@ -288,15 +257,9 @@ function App() {
   const handleStopRecording = async () => {
     if (!isPhonicsLesson(activeLesson)) return;
     setLessonStatus('checking');
-    setFeedbackText('Zibi is checking the translator.');
+    setFeedbackText('Zibi is checking the translator...');
 
-    if (recognitionRef.current) {
-      try {
-        recognitionRef.current.stop();
-      } catch (e) {
-        console.error('Failed to stop browser SpeechRecognition:', e);
-      }
-    }
+    stopRecognition();
 
     const samples = await stopRecording();
     if (micError) {
@@ -313,116 +276,58 @@ function App() {
       return;
     }
 
-    if (activeLesson.kind === 'word') {
-      if (!isServerConnected) {
-        // Wait briefly for onresult event if needed
-        await new Promise((resolve) => setTimeout(resolve, 800));
-        const transcript = recognitionTranscriptRef.current.trim();
-        if (transcript) {
-          const result = scoreWordAttempt(activeLesson, transcript);
-          setHeardText(transcript);
-          if (result.success) {
-            markLessonComplete(activeLesson);
-            setLessonStatus('success');
-            setFeedbackText(result.message);
-            playSoundEffect('success');
-            triggerExplosion();
-          } else {
-            setLessonStatus('retry');
-            setFeedbackText(result.message);
-            playSoundEffect('fail');
-          }
-          return;
-        }
+    const { transcript, source } = await transcribeAttempt({
+      samples,
+      getBrowserTranscript: getTranscript,
+      isServerConnected: isServerConnected === true,
+      targetText: activeLesson.targetText,
+    });
 
-        setLessonStatus('error');
-        setFeedbackText('Whisper lab offline. Start the local Whisper server, or try speaking clearly using browser speech recognition.');
-        playSoundEffect('fail');
-        return;
-      }
+    console.log(
+      `[Sound Safari] expected: "${activeLesson.targetText}" | heard: "${transcript}" | source: ${source}`
+    );
 
-      try {
-        const timeoutPromise = new Promise<never>((_, reject) => setTimeout(() => reject(new Error('Timeout')), 8000));
-        const transcript = await Promise.race([checkWithWhisper(samples), timeoutPromise]) as string;
-        const result = scoreWordAttempt(activeLesson, transcript);
-        setHeardText(transcript || getSoundLabel(bestVoiceRef.current.soundClass));
+    setHeardText(transcript);
+    setHeardSource(source);
 
-        if (result.success) {
-          markLessonComplete(activeLesson);
-          setLessonStatus('success');
-          setFeedbackText(result.message);
-          playSoundEffect('success');
-          triggerExplosion();
-        } else {
-          setLessonStatus('retry');
-          setFeedbackText(result.message);
-          playSoundEffect('fail');
-        }
-      } catch {
-        // Fallback to browser SpeechRecognition if fetch failed
-        await new Promise((resolve) => setTimeout(resolve, 800));
-        const transcript = recognitionTranscriptRef.current.trim();
-        if (transcript) {
-          const result = scoreWordAttempt(activeLesson, transcript);
-          setHeardText(transcript);
-          if (result.success) {
-            markLessonComplete(activeLesson);
-            setLessonStatus('success');
-            setFeedbackText(result.message);
-            playSoundEffect('success');
-            triggerExplosion();
-            return;
-          }
-        }
-        
-        setIsServerConnected(false);
-        setLessonStatus('error');
-        setFeedbackText('Whisper lab offline. Start the local Whisper server to check Earth words.');
-        playSoundEffect('fail');
-      }
+    if (!transcript) {
+      markLessonIncomplete(activeLesson);
+      setLessonStatus('retry');
+      setFeedbackText(
+        isServerConnected
+          ? `Try saying "${activeLesson.targetText}" clearly. ${activeLesson.retryPrompt}`
+          : `Whisper lab offline. Start the local Whisper server, or try speaking clearly using browser speech recognition. ${activeLesson.retryPrompt}`,
+      );
+      playSoundEffect('fail');
       return;
     }
 
-    const result = scorePhonemeAttempt({
-      lesson: activeLesson,
-      samples,
-      bestVoice: bestVoiceRef.current,
-    });
-    setHeardText(result.heardLabel ?? getSoundLabel(bestVoiceRef.current.soundClass));
-
+    const result = scoreWordAttempt(activeLesson, transcript);
     if (result.success) {
       markLessonComplete(activeLesson);
       setLessonStatus('success');
       setFeedbackText(result.message);
       playSoundEffect('success');
       triggerExplosion();
+      if (isFirstAttempt) {
+        // Auto-advance after showing the success celebration.
+        setTimeout(() => {
+          if (nextLesson) {
+            goToLesson(nextLesson);
+          } else {
+            setView('course');
+          }
+        }, 1500);
+      }
     } else {
+      markLessonIncomplete(activeLesson);
+      setIsFirstAttempt(false);
       setLessonStatus('retry');
       setFeedbackText(result.message);
       playSoundEffect('fail');
     }
   };
 
-  const checkWithWhisper = async (samples: Float32Array) => {
-    const wavArrayBuffer = encodeFloat32ArrayToWav(samples);
-    const wavBlob = new Blob([wavArrayBuffer], { type: 'audio/wav' });
-    const formData = new FormData();
-    formData.append('file', wavBlob, 'earthlingo.wav');
-    formData.append('response_format', 'json');
-
-    const targetWord = isPhonicsLesson(activeLesson) ? activeLesson.targetText : '';
-    const response = await fetch(`http://127.0.0.1:8080/inference?word=${encodeURIComponent(targetWord)}`, {
-      method: 'POST',
-      body: formData,
-    });
-
-    if (!response.ok) {
-      throw new Error(`Whisper returned ${response.status}`);
-    }
-
-    const data = await response.json();
-    return String(data.text || data.result || '').trim();
-  };
 
   const handleChoice = (choiceId: string) => {
     if (!isChoiceLesson(activeLesson) || lessonStatus === 'success') return;
@@ -558,6 +463,7 @@ function App() {
           status={lessonStatus}
           feedbackText={feedbackText}
           heardText={heardText}
+          heardSource={heardSource}
           isSupported={isSupported}
           isListening={isListening}
           soundClass={soundClass}

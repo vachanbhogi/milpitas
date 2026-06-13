@@ -15,8 +15,17 @@ const moodAnimations: Record<string, { alien: TargetAndTransition; ship: TargetA
     ship: { y: -6, rotate: 12 },
   },
   happy: {
-    alien: { scale: [1, 1.05, 1], rotate: [0, 2, -2, 0], y: [0, -12, 0] },
-    ship: { y: [0, -16, 0], rotate: [10, 14, 6, 10] },
+    alien: {
+      scale: [1, 1.06, 1],
+      rotate: [0, 3, -3, 0],
+      y: [0, -14, 0],
+      transition: { duration: 0.7, repeat: Infinity, ease: 'easeInOut' }
+    },
+    ship: {
+      y: [0, -18, 0],
+      rotate: [10, 13, 7, 10],
+      transition: { duration: 0.9, repeat: Infinity, ease: 'easeInOut' }
+    },
   },
   thinking: {
     alien: { scale: 0.98, rotate: -3, y: -2 },

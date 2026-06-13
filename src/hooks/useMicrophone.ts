@@ -67,18 +67,68 @@ export function useMicrophone() {
     if (!worklet) return null
 
     return new Promise((resolve) => {
+      let resolved = false;
+
+      // Safety timeout: if the worklet doesn't respond in 2.5 seconds, clean up and resolve with null.
+      const timeout = setTimeout(() => {
+        if (resolved) return;
+        resolved = true;
+        console.warn('stopRecording timed out waiting for worklet response. cleaning up.');
+        
+        try {
+          streamRef.current?.getTracks().forEach(t => t.stop());
+          contextRef.current?.close();
+        } catch (e) {
+          console.error('Error closing audio components during timeout cleanup:', e);
+        }
+
+        streamRef.current = null;
+        contextRef.current = null;
+        workletNodeRef.current = null;
+        utteranceResolveRef.current = null;
+
+        setState(prev => ({ ...prev, isListening: false }));
+        resolve(null);
+      }, 2500);
+
       utteranceResolveRef.current = (audio) => {
-        streamRef.current?.getTracks().forEach(t => t.stop())
-        contextRef.current?.close()
+        if (resolved) return;
+        resolved = true;
+        clearTimeout(timeout);
 
-        streamRef.current = null
-        contextRef.current = null
-        workletNodeRef.current = null
+        try {
+          streamRef.current?.getTracks().forEach(t => t.stop());
+          contextRef.current?.close();
+        } catch (e) {
+          console.error('Error closing audio components during normal cleanup:', e);
+        }
 
-        setState(prev => ({ ...prev, isListening: false }))
-        resolve(audio)
+        streamRef.current = null;
+        contextRef.current = null;
+        workletNodeRef.current = null;
+
+        setState(prev => ({ ...prev, isListening: false }));
+        resolve(audio);
       }
-      worklet.port.postMessage({ command: 'stop' })
+
+      try {
+        worklet.port.postMessage({ command: 'stop' });
+      } catch (e) {
+        console.error('Failed to postMessage to audio worklet:', e);
+        // If postMessage fails, trigger the timeout logic immediately to avoid hanging.
+        if (!resolved) {
+          resolved = true;
+          clearTimeout(timeout);
+          streamRef.current?.getTracks().forEach(t => t.stop());
+          contextRef.current?.close();
+          streamRef.current = null;
+          contextRef.current = null;
+          workletNodeRef.current = null;
+          utteranceResolveRef.current = null;
+          setState(prev => ({ ...prev, isListening: false }));
+          resolve(null);
+        }
+      }
     })
   }, [])
 

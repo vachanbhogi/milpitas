@@ -7,7 +7,7 @@ The story is simple: Zibi, a young alien, crash-lands on Earth and needs help le
 ## What The App Includes
 
 - **Course map:** app-first experience with phonics, letters, grammar, rewards, and pitch sections.
-- **Phonics missions:** microphone recording, live sound-shape feedback, and local `whisper.cpp` transcript scoring for word checks.
+- **Phonics missions (Sound Safari):** microphone recording, live sound-shape feedback, browser speech recognition, and local `whisper.cpp` transcript scoring for all word missions.
 - **Letter missions:** frontend games for matching sounds to letters.
 - **Grammar missions:** frontend games for nouns, actions, and simple sentence building.
 - **Rewards:** star seeds, ship repair progress, and course completion feedback.
@@ -19,7 +19,7 @@ The story is simple: Zibi, a young alien, crash-lands on Earth and needs help le
 - **Browser audio:** Web Audio API and AudioWorklet for microphone capture and live feedback.
 - **Local backend:** `whisper.cpp` server at `http://127.0.0.1:8080/inference` for speech transcription.
 
-The app no longer uses presenter-only correctness controls. Speech missions use real microphone input. Sound-only missions can still use the live audio analyzer when Whisper is offline, but word missions need the local Whisper server.
+The app no longer uses presenter-only correctness controls. Speech missions use real microphone input. All Sound Safari missions are word-based (sun, moon, apple, tap, pop, sat, mat, pat). Browser speech recognition is tried first; the local Whisper server is used when browser SR has no result. The live DSP meter is visual feedback only — it does not grade missions.
 
 ## Development
 

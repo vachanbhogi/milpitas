@@ -17,16 +17,6 @@ Earthlingo completely reimagines early childhood learning by prioritizing **inte
 - **Browser Audio:** Utilizes the Web Audio API and custom AudioWorklets for real-time microphone capture and live DSP visual feedback.
 - **Local Backend:** A highly efficient `whisper.cpp` server running locally (`http://127.0.0.1:8080/inference`) for ultra-fast, offline speech transcription.
 
-## Hackathon Rubric Fit (Targeting 9-10 Outstanding)
-
-- **Innovation & Creativity (9-10):** A highly original approach to literacy. Instead of kids reading to learn, they teach an alien Earth language using their voices. The integration of live audio visualization makes this a deeply novel educational tool.
-- **Technical Complexity & Execution (9-10):** Built on a complicated and highly efficient tech stack: React, strictly-typed TypeScript, Web Audio API with AudioWorklets, and a local `whisper.cpp` server for offline AI transcription. The codebase is comprehensive, optimized (recent audio payload reductions), and handles complex state.
-- **Functionality & Usability (9-10):** Fully functional and smooth. The UX is intuitive, designed explicitly for young children without relying on text. Judges can freely explore the course map, complete voice missions, and interact with the reward system seamlessly.
-- **Design & Presentation (9-10):** Features a polished, bright, and original cartoon UI. The interface uses large, clear controls and engaging visual feedback mechanisms, providing an excellent and confident presentation of the core idea.
-- **Impact & Practicality (9-10):** Solves a real problem in early childhood education by removing the "reading prerequisite" for learning. It is a highly impactful, scalable solution that could easily survive and thrive as a real-world educational product.
-- **Relevance to Theme/Track (9-10):** Completely follows Track 1. It directly reimagines early childhood learning through interactive, sound-and-visual-first experiences, utilizing creative game mechanics and playful rewards to ensure engagement.
-- **Quality of Code (9-10):** Exemplary, well-commented, and efficient codebase. Strictly adheres to ESLint rules with no `any` types (fixed in recent commits), ensuring robust type safety. It is open source and architected cleanly for scale.
-
 ## Development
 
 Install dependencies:

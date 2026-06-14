@@ -307,15 +307,17 @@ button:focus-visible {
   opacity: 0.6;
 }
 
-.primary-action:not(:disabled):hover,
-.secondary-action:not(:disabled):hover,
-.module-button:hover,
-.back-button:hover,
-.clear-action:hover,
-.choice-card:hover,
-.tile-grid button:hover {
-  transform: scale(1.05) translateY(-2px);
-  box-shadow: 7px 7px 0 var(--line);
+@media (hover: hover) {
+  .primary-action:not(:disabled):hover,
+  .secondary-action:not(:disabled):hover,
+  .module-button:hover,
+  .back-button:hover,
+  .clear-action:hover,
+  .choice-card:hover,
+  .tile-grid button:hover {
+    transform: scale(1.05) translateY(-2px);
+    box-shadow: 7px 7px 0 var(--line);
+  }
 }
 
 .primary-action:not(:disabled):active,
@@ -1624,9 +1626,11 @@ button:focus-visible {
   transition: transform 150ms ease, box-shadow 150ms ease;
 }
 
-.clickable-sound-stage:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 18px 0 rgba(23, 32, 51, 0.15);
+@media (hover: hover) {
+  .clickable-sound-stage:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 18px 0 rgba(23, 32, 51, 0.15);
+  }
 }
 
 .clickable-sound-stage .target-label {
@@ -1785,8 +1789,10 @@ button:focus-visible {
   transition: transform 100ms ease, box-shadow 100ms ease;
 }
 
-.synth-demo-btn:hover {
-  background: var(--yellow);
+@media (hover: hover) {
+  .synth-demo-btn:hover {
+    background: var(--yellow);
+  }
 }
 
 .synth-demo-btn:active {
@@ -1882,8 +1888,10 @@ button:focus-visible {
   text-align: left;
 }
 
-.faq-question:hover {
-  background: #fdfaf4;
+@media (hover: hover) {
+  .faq-question:hover {
+    background: #fdfaf4;
+  }
 }
 
 .faq-toggle-icon {
@@ -2051,9 +2059,11 @@ button:focus-visible {
   transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.25s ease;
 }
 
-.path-planet-bubble:hover {
-  transform: rotate(1deg) scale(1.03);
-  box-shadow: 8px 8px 0 var(--line);
+@media (hover: hover) {
+  .path-planet-bubble:hover {
+    transform: rotate(1deg) scale(1.03);
+    box-shadow: 8px 8px 0 var(--line);
+  }
 }
 
 .color-yellow { background: #fffde6; }
@@ -2105,9 +2115,11 @@ button:focus-visible {
   outline: none;
 }
 
-.path-dot:hover {
-  transform: scale(1.4);
-  border-color: var(--ink);
+@media (hover: hover) {
+  .path-dot:hover {
+    transform: scale(1.4);
+    border-color: var(--ink);
+  }
 }
 
 .path-dot.is-complete {
@@ -2352,9 +2364,11 @@ button:focus-visible {
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.shop-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 7px 7px 0 var(--line);
+@media (hover: hover) {
+  .shop-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 7px 7px 0 var(--line);
+  }
 }
 
 .shop-card.bought {
@@ -2794,10 +2808,12 @@ button:focus-visible {
   font-size: 0.85rem;
 }
 
-.buy-button:hover,
-.equip-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 5px 5px 0 var(--line);
+@media (hover: hover) {
+  .buy-button:hover,
+  .equip-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 5px 5px 0 var(--line);
+  }
 }
 
 .buy-button:active,

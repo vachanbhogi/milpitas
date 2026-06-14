@@ -19,6 +19,7 @@ interface RewardsProps {
 }
 
 const springTap = { type: 'spring' as const, stiffness: 500, damping: 20 };
+const isTouchDevice = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
 const stagger: Variants = {
   hidden: {},
   visible: {
@@ -62,7 +63,7 @@ export function Rewards({
           <motion.h1 variants={fadeUpFast}>{completedCount} Scoin Seeds Collected</motion.h1>
           <motion.p variants={fadeUpFast}>Zibi needs {totalLessons} Scoin seeds to unlock the final jump home!</motion.p>
           <motion.div className="milestone-badge" variants={fadeUpFast}
-            whileHover={{ y: -2, transition: { type: 'spring', stiffness: 200, damping: 12 } }}>
+            whileHover={isTouchDevice ? undefined : { y: -2, transition: { type: 'spring', stiffness: 200, damping: 12 } }}>
             <strong>Total Scoin Seeds: {completedCount}/{totalLessons}</strong>
             <p className="milestone-subtext">
               {hasUnlockedHome 
@@ -78,7 +79,7 @@ export function Rewards({
           </motion.div>
           <motion.button className="secondary-action" type="button" onClick={onRestart} style={{ marginTop: '16px' }}
             variants={fadeUpFast}
-            whileHover={{ scale: 1.05, boxShadow: '7px 7px 0 #172033' }}
+            whileHover={isTouchDevice ? undefined : { scale: 1.05, boxShadow: '7px 7px 0 #172033' }}
             whileTap={{ scale: 0.96 }}
             transition={springTap}>
             Restart Orbit
@@ -99,7 +100,7 @@ export function Rewards({
           {/* Redesigned Retro Space Helmet */}
           <motion.div className="shop-card"
             variants={fadeUpFast}
-            whileHover={{ y: -4, boxShadow: '8px 8px 0 #172033' }}
+            whileHover={isTouchDevice ? undefined : { y: -4, boxShadow: '8px 8px 0 #172033' }}
             transition={{ type: 'spring', stiffness: 200, damping: 12 }}>
             
             <div className="shop-card-preview">
@@ -163,7 +164,7 @@ export function Rewards({
           {/* Cosmic Star Crown */}
           <motion.div className="shop-card"
             variants={fadeUpFast}
-            whileHover={{ y: -4, boxShadow: '8px 8px 0 #172033' }}
+            whileHover={isTouchDevice ? undefined : { y: -4, boxShadow: '8px 8px 0 #172033' }}
             transition={{ type: 'spring', stiffness: 200, damping: 12 }}>
             
             <div className="shop-card-preview" style={{ background: 'var(--violet)' }}>
@@ -230,7 +231,7 @@ export function Rewards({
             return (
               <motion.div key={module.id} className={`seed-log-card color-${module.colorClass}`}
                 variants={fadeUpFast}
-                whileHover={{ y: -3, boxShadow: '6px 6px 0 #172033' }}
+                whileHover={isTouchDevice ? undefined : { y: -3, boxShadow: '6px 6px 0 #172033' }}
                 transition={{ type: 'spring', stiffness: 200, damping: 12 }}>
                 <div className="seed-log-header">
                   <PictureBadge
@@ -254,7 +255,7 @@ export function Rewards({
                       type="button"
                       onClick={() => onOpenLesson(lesson)}
                       title={lesson.title}
-                      whileHover={{ scale: 1.6 }}
+                      whileHover={isTouchDevice ? undefined : { scale: 1.6 }}
                       whileTap={{ scale: 0.8 }}
                       transition={{ type: 'spring', stiffness: 400, damping: 12 }}
                     />

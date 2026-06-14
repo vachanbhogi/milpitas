@@ -11,6 +11,7 @@ interface HomeProps {
 
 const springHover = { type: 'spring' as const, stiffness: 300, damping: 12 };
 const springTap = { type: 'spring' as const, stiffness: 500, damping: 20 };
+const isTouchDevice = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
 const stagger: Variants = {
   hidden: {},
   visible: {
@@ -82,7 +83,7 @@ export function Home({ isServerConnected, onOpenApp, equippedItem }: HomeProps) 
               className="primary-action giant-start-btn"
               type="button"
               onClick={onOpenApp}
-              whileHover={{ scale: 1.05, boxShadow: '12px 12px 0 #172033' }}
+              whileHover={isTouchDevice ? undefined : { scale: 1.05, boxShadow: '12px 12px 0 #172033' }}
               whileTap={{ scale: 0.96, boxShadow: '4px 4px 0 #172033' }}
               transition={springTap}
             >
@@ -116,7 +117,7 @@ export function Home({ isServerConnected, onOpenApp, equippedItem }: HomeProps) 
       </motion.section>
 
       <motion.section className="pitch-problem-outcome" variants={fadeUp}>
-        <motion.div className="pitch-card problem-card" variants={fadeUpFast} whileHover={{ y: -4, boxShadow: '0 20px 0 rgba(23,32,51,0.14)' }} transition={springHover}>
+        <motion.div className="pitch-card problem-card" variants={fadeUpFast} whileHover={isTouchDevice ? undefined : { y: -4, boxShadow: '0 20px 0 rgba(23,32,51,0.14)' }} transition={springHover}>
           <span className="card-badge badge-red">The Problem</span>
           <h2>The Pre-Reader Instruction Deadlock</h2>
           <p>
@@ -124,7 +125,7 @@ export function Home({ isServerConnected, onOpenApp, equippedItem }: HomeProps) 
             This technical deadlock excludes children who lack reading skills and forces constant parental supervision.
           </p>
         </motion.div>
-        <motion.div className="pitch-card outcome-card" variants={fadeUpFast} whileHover={{ y: -4, boxShadow: '0 20px 0 rgba(23,32,51,0.14)' }} transition={springHover}>
+        <motion.div className="pitch-card outcome-card" variants={fadeUpFast} whileHover={isTouchDevice ? undefined : { y: -4, boxShadow: '0 20px 0 rgba(23,32,51,0.14)' }} transition={springHover}>
           <span className="card-badge badge-green">The Solution</span>
           <h2>A Sound-First, Voice-Native Learning Loop</h2>
           <p>
@@ -147,7 +148,7 @@ export function Home({ isServerConnected, onOpenApp, equippedItem }: HomeProps) 
               type="button"
               onClick={() => playSynthesizedPhonics(sound.target)}
               variants={fadeUpFast}
-              whileHover={{
+              whileHover={isTouchDevice ? undefined : {
                 scale: 1.06,
                 y: -3,
                 boxShadow: '7px 7px 0 #172033',
@@ -170,22 +171,22 @@ export function Home({ isServerConnected, onOpenApp, equippedItem }: HomeProps) 
         </motion.div>
         
         <motion.div className="architecture-grid" variants={stagger}>
-          <motion.div className="arch-item" variants={fadeUpFast} whileHover={{ y: -3, transition: { type: 'spring', stiffness: 200, damping: 12 } }}>
+          <motion.div className="arch-item" variants={fadeUpFast} whileHover={isTouchDevice ? undefined : { y: -3, transition: { type: 'spring', stiffness: 200, damping: 12 } }}>
             <h3>AudioWorklet DSP Thread</h3>
             <p>Captures microphone signals in a separate 16kHz background thread, calculating RMS energy and Zero-Crossing Rates (ZCR) with zero lag.</p>
           </motion.div>
-          <motion.div className="arch-item" variants={fadeUpFast} whileHover={{ y: -3, transition: { type: 'spring', stiffness: 200, damping: 12 } }}>
+          <motion.div className="arch-item" variants={fadeUpFast} whileHover={isTouchDevice ? undefined : { y: -3, transition: { type: 'spring', stiffness: 200, damping: 12 } }}>
             <h3>Subtractive Formant Synth</h3>
             <p>Models the human vocal tract in real-time by chaining biquad bandpass filters and modulated oscillators to synthesize voice sounds on the fly.</p>
           </motion.div>
-          <motion.div className="arch-item" variants={fadeUpFast} whileHover={{ y: -3, transition: { type: 'spring', stiffness: 200, damping: 12 } }}>
+          <motion.div className="arch-item" variants={fadeUpFast} whileHover={isTouchDevice ? undefined : { y: -3, transition: { type: 'spring', stiffness: 200, damping: 12 } }}>
             <h3>Local Whisper Inference</h3>
             <p>Integrates with a local Whisper neural net to grade complex word blends completely offline without sending data to the cloud.</p>
             <p style={{ marginTop: '12px', fontWeight: 'bold', fontSize: '0.82rem', color: isServerConnected ? '#2ecc71' : '#e74c3c' }}>
               Offline Engine: {isServerConnected ? 'Online (Local Inference Ready)' : 'Offline (Server connection available for local inference)'}
             </p>
           </motion.div>
-          <motion.div className="arch-item" variants={fadeUpFast} whileHover={{ y: -3, transition: { type: 'spring', stiffness: 200, damping: 12 } }}>
+          <motion.div className="arch-item" variants={fadeUpFast} whileHover={isTouchDevice ? undefined : { y: -3, transition: { type: 'spring', stiffness: 200, damping: 12 } }}>
             <h3>COPPA-Safe Design</h3>
             <p>Maintains absolute data privacy. All student interactions, audio streams, and lesson progress are kept on-device, resolving security and scaling hurdles.</p>
           </motion.div>

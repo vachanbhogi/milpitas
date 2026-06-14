@@ -21,6 +21,7 @@ import { getHeardLabel, type TranscriptionSource } from '../soundSafari/transcri
 import { getSoundLabel } from '../soundSafari/scoring';
 
 const springTap = { type: 'spring' as const, stiffness: 500, damping: 20 };
+const isTouchDevice = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
 const stagger: Variants = {
   hidden: {},
   visible: {
@@ -154,7 +155,7 @@ function CourseMap({
                   className="primary-action giant-start-btn"
                   type="button"
                   onClick={() => onOpenLesson(nextRequiredLesson)}
-                  whileHover={{ scale: 1.05, boxShadow: '12px 12px 0 #172033' }}
+                  whileHover={isTouchDevice ? undefined : { scale: 1.05, boxShadow: '12px 12px 0 #172033' }}
                   whileTap={{ scale: 0.96, boxShadow: '4px 4px 0 #172033' }}
                   transition={springTap}
                   style={{ width: 'fit-content' }}
@@ -189,7 +190,7 @@ function CourseMap({
                   className="primary-action giant-start-btn"
                   type="button"
                   onClick={onRestart}
-                  whileHover={{ scale: 1.05, boxShadow: '12px 12px 0 #172033' }}
+                  whileHover={isTouchDevice ? undefined : { scale: 1.05, boxShadow: '12px 12px 0 #172033' }}
                   whileTap={{ scale: 0.96, boxShadow: '4px 4px 0 #172033' }}
                   transition={springTap}
                   style={{ width: 'fit-content' }}
@@ -243,7 +244,7 @@ function CourseMap({
           },
         ].map((item) => (
           <motion.div key={item.label} variants={fadeUpFast}
-            whileHover={{ y: -2, transition: { type: 'spring', stiffness: 200, damping: 12 } }}
+            whileHover={isTouchDevice ? undefined : { y: -2, transition: { type: 'spring', stiffness: 200, damping: 12 } }}
             style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '100%' }}>
             <span style={{ whiteSpace: 'nowrap' }}>{item.label}</span>
             <div className="status-track" style={{ flex: 1, height: '18px', background: 'rgba(23, 32, 51, 0.12)', borderRadius: '9px', overflow: 'hidden', margin: 0 }}>
@@ -267,7 +268,7 @@ function CourseMap({
               <p>Every Scoin seed is glowing. Replay the course or jump into any planet.</p>
             </div>
             <motion.button className="secondary-action" type="button" onClick={onRestart}
-              whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.96 }} transition={springTap}>
+              whileHover={isTouchDevice ? undefined : { scale: 1.05 }} whileTap={{ scale: 0.96 }} transition={springTap}>
               🔄 Play Again
             </motion.button>
           </motion.section>
@@ -311,6 +312,7 @@ function CourseMap({
 
             const moduleDoneCount = !isHomePlanet ? module.lessons.filter(lesson => completedLessons.has(lesson.id)).length : 0;
             const totalInModule = !isHomePlanet ? module.lessons.length : 0;
+            const nextInModule = !isHomePlanet ? module.lessons.find(lesson => !completedLessons.has(lesson.id)) : null;
 
             return (
               <motion.div
@@ -319,7 +321,7 @@ function CourseMap({
                 variants={fadeUpFast}
               >
                 <motion.div className={`path-planet-bubble color-${module.colorClass}`}
-                  whileHover={{ scale: 1.03, rotate: 1, boxShadow: '8px 8px 0 #172033' }}
+                  whileHover={isTouchDevice ? undefined : { scale: 1.03, rotate: 1, boxShadow: '8px 8px 0 #172033' }}
                   transition={{ type: 'spring', stiffness: 200, damping: 12 }}>
                   <PictureBadge art={isHomePlanet ? 'planet' : module.id === 'phonics' ? 'planet' : module.id === 'letters' ? 'star' : module.id === 'writing' ? 'paint' : 'ship'} label={module.title} />
                   <div className="planet-details">
@@ -343,19 +345,24 @@ function CourseMap({
                               type="button"
                               onClick={() => onOpenLesson(lesson)}
                               title={`Start lesson: ${lesson.title}`}
-                              whileHover={{ scale: 1.6 }}
+                              whileHover={isTouchDevice ? undefined : { scale: 1.6 }}
                               whileTap={{ scale: 0.8 }}
                               transition={{ type: 'spring', stiffness: 400, damping: 12 }}
                             />
                           ))}
                         </div>
+                        {nextInModule && (
+                          <div className="planet-next-mission" style={{ marginTop: '8px', fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--ink)' }}>
+                            Target: <span style={{ color: 'var(--purple-ink, #8677ff)' }}>{nextInModule.title}</span>
+                          </div>
+                        )}
                       </>
                     )}
                   </div>
                   
                   {!isLocked && !isHomePlanet && (
                     <motion.button className="primary-action start-planet-btn" type="button" onClick={() => onOpenModule(module.id)}
-                      whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} transition={springTap}>
+                      whileHover={isTouchDevice ? undefined : { scale: 1.05 }} whileTap={{ scale: 0.95 }} transition={springTap}>
                       🚀 Land!
                     </motion.button>
                   )}
@@ -477,7 +484,7 @@ function LessonScreen({
         <motion.section className={`lesson-card module-${activeModule.colorClass}`} variants={fadeUp}>
           <motion.div className="lesson-header" variants={fadeUpFast}>
             <motion.button className="back-button" type="button" onClick={onBack}
-              whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.96 }} transition={springTap}>
+              whileHover={isTouchDevice ? undefined : { scale: 1.05 }} whileTap={{ scale: 0.96 }} transition={springTap}>
               Map
             </motion.button>
             <div style={{ display: 'grid', justifyItems: 'end', gap: '4px' }}>
@@ -599,7 +606,7 @@ function LessonScreen({
                   <strong>{lesson.rewardName} (+1 Scoin Seed!)</strong>
                 </div>
                 <motion.button className="primary-action" type="button" onClick={onNext}
-                  whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.96 }} transition={springTap}>
+                  whileHover={isTouchDevice ? undefined : { scale: 1.05 }} whileTap={{ scale: 0.96 }} transition={springTap}>
                   Next Mission
                 </motion.button>
               </motion.div>
@@ -683,7 +690,7 @@ function PhonicsMission({
         }}
         style={{ cursor: 'pointer' }}
         variants={fadeUpFast}
-        whileHover={{ y: -3, boxShadow: '0 20px 0 rgba(23,32,51,0.15)' }}
+        whileHover={isTouchDevice ? undefined : { y: -3, boxShadow: '0 20px 0 rgba(23,32,51,0.15)' }}
         transition={{ type: 'spring', stiffness: 200, damping: 12 }}
       >
         <div className="target-label">Teach Zibi (Tap to Hear)</div>
@@ -703,7 +710,7 @@ function PhonicsMission({
                 playSynthesizedPhonics(part);
               }}
               style={{ cursor: 'pointer' }}
-              whileHover={{ scale: 1.12, y: -2, boxShadow: '6px 6px 0 #172033' }}
+              whileHover={isTouchDevice ? undefined : { scale: 1.12, y: -2, boxShadow: '6px 6px 0 #172033' }}
               whileTap={{ scale: 0.92 }}
               transition={{ type: 'spring', stiffness: 300, damping: 10 }}
             >
@@ -785,13 +792,13 @@ function PhonicsMission({
       <div className="lesson-actions">
         {status !== 'recording' && status !== 'checking' && (
           <motion.button className="primary-action" type="button" disabled={!isSupported} onClick={onStartRecording}
-            whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.96 }} transition={springTap}>
+            whileHover={isTouchDevice ? undefined : { scale: 1.05 }} whileTap={{ scale: 0.96 }} transition={springTap}>
             Start Speaking
           </motion.button>
         )}
         {status === 'recording' && (
           <motion.button className="primary-action stop-action" type="button" onClick={onStopRecording}
-            whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.96 }} transition={springTap}>
+            whileHover={isTouchDevice ? undefined : { scale: 1.05 }} whileTap={{ scale: 0.96 }} transition={springTap}>
             Check My Sound
           </motion.button>
         )}
@@ -844,7 +851,7 @@ function ChoiceMission({ lesson, status, feedbackText, selectedChoiceId, onChoic
               key={choice.id}
               onClick={() => onChoice(choice.id)}
               variants={fadeUpFast}
-              whileHover={{ scale: 1.04, y: -4, boxShadow: '10px 10px 0 rgba(23,32,51,0.2)' }}
+              whileHover={isTouchDevice ? undefined : { scale: 1.04, y: -4, boxShadow: '10px 10px 0 rgba(23,32,51,0.2)' }}
               whileTap={{ scale: 0.95, boxShadow: '2px 2px 0 rgba(23,32,51,0.2)' }}
               transition={{ type: 'spring', stiffness: 250, damping: 12 }}
               layout
@@ -907,7 +914,7 @@ function SentenceMission({ lesson, status, feedbackText, selectedTiles, onTile, 
               type="button"
               onClick={() => onTile(tile)}
               variants={fadeUpFast}
-              whileHover={{ scale: 1.06, y: -2, boxShadow: '7px 7px 0 #172033' }}
+              whileHover={isTouchDevice ? undefined : { scale: 1.06, y: -2, boxShadow: '7px 7px 0 #172033' }}
               whileTap={{ scale: 0.94, boxShadow: '2px 2px 0 #172033' }}
               transition={{ type: 'spring', stiffness: 300, damping: 10 }}
               layout
@@ -921,7 +928,7 @@ function SentenceMission({ lesson, status, feedbackText, selectedTiles, onTile, 
           {status !== 'success' && (
             <motion.button className="secondary-action clear-action" type="button" onClick={onClear}
               initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
-              whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.96 }} transition={springTap}>
+              whileHover={isTouchDevice ? undefined : { scale: 1.05 }} whileTap={{ scale: 0.96 }} transition={springTap}>
               Clear
             </motion.button>
           )}
@@ -1162,7 +1169,7 @@ function WritingMission({ lesson, status, onComplete }: WritingMissionProps) {
                 type="button"
                 onClick={clearCanvas}
                 disabled={isChecking}
-                whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.96 }} transition={springTap}>
+                whileHover={isTouchDevice ? undefined : { scale: 1.05 }} whileTap={{ scale: 0.96 }} transition={springTap}>
                 Clear Canvas
               </motion.button>
               <motion.button
@@ -1170,7 +1177,7 @@ function WritingMission({ lesson, status, onComplete }: WritingMissionProps) {
                 type="button"
                 disabled={!hasInk || isChecking}
                 onClick={handleCheck}
-                whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.96 }} transition={springTap}>
+                whileHover={isTouchDevice ? undefined : { scale: 1.05 }} whileTap={{ scale: 0.96 }} transition={springTap}>
                 {isChecking ? 'Scanning...' : 'Check My Writing!'}
               </motion.button>
             </motion.div>

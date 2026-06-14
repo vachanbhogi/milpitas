@@ -6,6 +6,7 @@ const CHILD_PHONICS_RATE = 0.75;
 const CHILD_PHONICS_PITCH = 1.35;
 const NARRATION_EMOJI_PATTERN = /🔊|✏️|🔓|🔒|✨|⭐️|🎉|🪐|💫|🎨|🚀|🛸|🏆|🏅|👑|🔔/g;
 const HELD_PHONEME_PATTERN = /\b([smpalrt])\1{2,}\b/gi;
+const POST_PHONEME_SOUND_LABEL_PATTERN = /^\s+sound\b[!?.]?/i;
 const PHONEME_AUDIO_DELAY_MS = 850;
 
 type NarrationSegment =
@@ -398,7 +399,10 @@ function getNarrationSegments(text: string): NarrationSegment[] {
     }
 
     segments.push({ type: 'phoneme', value: match[1].toLowerCase() });
-    cursor = match.index + match[0].length;
+
+    const nextCursor = match.index + match[0].length;
+    const soundLabel = clean.slice(nextCursor).match(POST_PHONEME_SOUND_LABEL_PATTERN);
+    cursor = nextCursor + (soundLabel?.[0].length ?? 0);
   }
 
   if (cursor < clean.length) {

@@ -36,33 +36,44 @@ const fadeUpFast: Variants = {
 export function Home({ isServerConnected, onOpenApp, equippedItem }: HomeProps) {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      speakText("Just press start!");
+    }, 500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const [playingSound, setPlayingSound] = useState<string | null>(null);
+
+  const demoColors = ['var(--yellow)', 'var(--blue)', 'var(--pink)', 'var(--green)'];
+
   const demoSounds = [
-    { target: 'S', label: 'Hissy Air', desc: 'Custom noise node with bandpass sweep at 6.5kHz' },
-    { target: 'M', label: 'Moon Hum', desc: '130Hz triangle wave with low-frequency vibrato modulation' },
-    { target: 'A', label: 'Open Vowel', desc: 'Formant synthesis with double biquad resonance peaks' },
-    { target: 'T', label: 'Quick Tap', desc: 'Transient click sweep using envelope-modulated white noise' },
-    { target: 'P', label: 'Pop Pod', desc: 'Muffled low-frequency sine sweep transient burst' },
-    { target: 'SAT', label: 'Blend: SAT', desc: 'Dynamic sequence blending S-A-T formant parameters' },
-    { target: 'MAT', label: 'Blend: MAT', desc: 'Dynamic sequence blending M-A-T formant parameters' },
-    { target: 'PAT', label: 'Blend: PAT', desc: 'Dynamic sequence blending P-A-T formant parameters' },
+    { target: 'S', label: 'Hissy Air' },
+    { target: 'M', label: 'Moon Hum' },
+    { target: 'A', label: 'Open Vowel' },
+    { target: 'T', label: 'Quick Tap' },
+    { target: 'P', label: 'Pop Pod' },
+    { target: 'SAT', label: 'Blend: SAT' },
+    { target: 'MAT', label: 'Blend: MAT' },
+    { target: 'PAT', label: 'Blend: PAT' },
   ];
 
   const faqs = [
     {
-      q: "How does Mumble protect children's privacy (COPPA compliance)?",
-      a: "Mumble is private-by-design. Our dual-engine architecture processes all audio input locally on the user's device. No voice recordings or telemetry are ever sent to external cloud servers, making it 100% COPPA-compliant and safe for early learners."
+      q: "How does Mumble protect kids' privacy?",
+      a: "Mumble is private-by-design. All audio input is processed locally on the user's device. No voice recordings or telemetry are ever sent to external cloud servers, making it 100% COPPA-compliant and safe for early learners."
     },
     {
-      q: "Why use browser-native speech synthesis instead of pre-recorded audio?",
-      a: "By synthesizing human phonemes in real-time using Web Audio API oscillators and filters, we reduce the app size by 95% (no massive audio asset downloads) and enable interactive sound manipulation that adapts to a child's learning pace with zero download latency."
+      q: "Why browser-native speech instead of pre-recorded audio?",
+      a: "By synthesizing phonemes in real-time using the Web Audio API, we reduce app size by 95% and enable interactive sound manipulation that adapts to a child's pace with zero download latency."
     },
     {
-      q: "How does the dual-engine validation handle varied toddler pronunciation?",
-      a: "Toddler speech is highly variable and often confuses standard speech-to-text models. Mumble uses a sophisticated hybrid validation engine: real-time DSP heuristics (RMS energy and Zero-Crossing Rates) analyze the acoustics of phonemes, while a local Whisper neural net checks full word blends, ensuring encouraging and accurate grading."
+      q: "How does the engine handle varied toddler pronunciation?",
+      a: "Toddler speech is highly variable and often confuses standard speech-to-text models. Mumble uses a hybrid validation engine: real-time DSP heuristics analyze phoneme acoustics while a local Whisper neural net checks full word blends, ensuring encouraging and accurate grading."
     },
     {
-      q: "What is the commercial viability and scaling cost of this solution?",
-      a: "Because all audio analysis, formant speech synthesis, and DSP run directly on client hardware (edge computing), Mumble has a $0 API scaling cost. This makes the product highly profitable, scalable, and fully functional offline."
+      q: "What is the commercial scaling cost?",
+      a: "Because all audio analysis, speech synthesis, and DSP run directly on client hardware, Mumble has $0 API scaling cost. This makes it highly profitable, scalable, and fully functional offline."
     }
   ];
 
@@ -114,84 +125,86 @@ export function Home({ isServerConnected, onOpenApp, equippedItem }: HomeProps) 
       </motion.section>
 
       <motion.section className="pitch-problem-outcome" variants={fadeUp}>
-        <motion.div className="pitch-card problem-card" variants={fadeUpFast} whileHover={isTouchDevice ? undefined : { y: -4, boxShadow: '0 20px 0 rgba(23,32,51,0.14)' }} transition={springHover}>
+        <motion.div className="pitch-card problem-card pitch-card-accent-red" variants={fadeUpFast} whileHover={isTouchDevice ? undefined : { y: -4, boxShadow: '0 20px 0 rgba(23,32,51,0.14)' }} transition={springHover}>
           <span className="card-badge badge-red">The Problem</span>
-          <h2>The Pre-Reader Instruction Deadlock</h2>
-          <p>
-            Traditional early literacy apps require children to read written text instructions just to learn how to read. 
-            This technical deadlock excludes children who lack reading skills and forces constant parental supervision.
-          </p>
+          <h2>Most literacy apps assume kids can already read.</h2>
+          <p>Traditional early literacy apps require children to read written text instructions just to learn how to read.</p>
         </motion.div>
-        <motion.div className="pitch-card outcome-card" variants={fadeUpFast} whileHover={isTouchDevice ? undefined : { y: -4, boxShadow: '0 20px 0 rgba(23,32,51,0.14)' }} transition={springHover}>
+        <motion.div className="pitch-card outcome-card pitch-card-accent-green" variants={fadeUpFast} whileHover={isTouchDevice ? undefined : { y: -4, boxShadow: '0 20px 0 rgba(23,32,51,0.14)' }} transition={springHover}>
           <span className="card-badge badge-green">The Solution</span>
-          <h2>A Sound-First, Voice-Native Learning Loop</h2>
-          <p>
-            Mumble replaces text instructions with browser-synthesized speech and voice gameplay. 
-            Children speak phonics sounds to help a friendly alien repair his ship, accelerating phoneme-to-grapheme association by 3x.
-          </p>
+          <h2>Mumble flips the script.</h2>
+          <p>Children speak. Zibi listens. No reading required.</p>
         </motion.div>
       </motion.section>
 
       <motion.section className="pitch-sound-lab" variants={fadeUp}>
         <motion.h2 variants={fadeUpFast}>Interactive Formant Synth Sandbox</motion.h2>
         <motion.p className="subtitle" variants={fadeUpFast}>
-          Experience our browser-native subtractive sound synthesizers. Click below to generate phonetic formants dynamically using code.
+          Click any sound to hear Zibi's voice engine in action.
         </motion.p>
         <motion.div className="synth-buttons-grid" variants={stagger}>
-          {demoSounds.map((sound) => (
-            <motion.button
-              key={sound.target}
-              className="synth-demo-btn"
-              type="button"
-              onClick={() => playSynthesizedPhonics(sound.target)}
-              variants={fadeUpFast}
-              whileHover={isTouchDevice ? undefined : {
-                scale: 1.06,
-                y: -3,
-                boxShadow: '7px 7px 0 #172033',
-                transition: { type: 'spring', stiffness: 300, damping: 12 },
-              }}
-              whileTap={{ scale: 0.95, boxShadow: '2px 2px 0 #172033' }}
-            >
-              <strong>{sound.target}</strong>
-              <span className="synth-label">{sound.label}</span>
-              <span className="synth-desc">{sound.desc}</span>
-            </motion.button>
-          ))}
+          {demoSounds.map((sound, i) => {
+            const isPlaying = playingSound === sound.target;
+            return (
+              <motion.button
+                key={sound.target}
+                className={`synth-demo-btn${isPlaying ? ' is-playing' : ''}`}
+                type="button"
+                onClick={() => {
+                  setPlayingSound(sound.target);
+                  playSynthesizedPhonics(sound.target);
+                  setTimeout(() => setPlayingSound(null), 600);
+                }}
+                variants={fadeUpFast}
+                style={{ '--btn-color': demoColors[i % 4] } as React.CSSProperties}
+                whileHover={isTouchDevice ? undefined : {
+                  scale: 1.06,
+                  y: -3,
+                  boxShadow: '7px 7px 0 #172033',
+                  transition: { type: 'spring', stiffness: 300, damping: 12 },
+                }}
+                whileTap={{ scale: 0.95, boxShadow: '2px 2px 0 #172033' }}
+              >
+                <strong>{sound.target}</strong>
+                <span className="synth-label">{sound.label}</span>
+              </motion.button>
+            );
+          })}
         </motion.div>
       </motion.section>
 
       <motion.section className="pitch-architecture" variants={fadeUp}>
         <motion.div className="architecture-header" variants={fadeUpFast}>
-          <h2>Solution Architecture</h2>
-          <p>A high-performance, private-by-design edge computing stack.</p>
+          <h2>How It Works Under the Hood</h2>
+          <p>Built for speed, privacy, and the classroom.</p>
         </motion.div>
         
         <motion.div className="architecture-grid" variants={stagger}>
-          <motion.div className="arch-item" variants={fadeUpFast} whileHover={isTouchDevice ? undefined : { y: -3, transition: { type: 'spring', stiffness: 200, damping: 12 } }}>
-            <h3>AudioWorklet DSP Thread</h3>
-            <p>Captures microphone signals in a separate 16kHz background thread, calculating RMS energy and Zero-Crossing Rates (ZCR) with zero lag.</p>
+          <motion.div className="arch-item arch-yellow" variants={fadeUpFast} whileHover={isTouchDevice ? undefined : { y: -3, transition: { type: 'spring', stiffness: 200, damping: 12 } }}>
+            <span className="arch-number">01</span>
+            <h3>Audio Capture</h3>
+            <p>Captures microphone signals in a separate 16kHz background thread with zero lag.</p>
           </motion.div>
-          <motion.div className="arch-item" variants={fadeUpFast} whileHover={isTouchDevice ? undefined : { y: -3, transition: { type: 'spring', stiffness: 200, damping: 12 } }}>
-            <h3>Subtractive Formant Synth</h3>
-            <p>Models the human vocal tract in real-time by chaining biquad bandpass filters and modulated oscillators to synthesize voice sounds on the fly.</p>
+          <motion.div className="arch-item arch-blue" variants={fadeUpFast} whileHover={isTouchDevice ? undefined : { y: -3, transition: { type: 'spring', stiffness: 200, damping: 12 } }}>
+            <span className="arch-number">02</span>
+            <h3>Voice Synthesis</h3>
+            <p>Models the human vocal tract in real-time using chained biquad filters and modulated oscillators.</p>
           </motion.div>
-          <motion.div className="arch-item" variants={fadeUpFast} whileHover={isTouchDevice ? undefined : { y: -3, transition: { type: 'spring', stiffness: 200, damping: 12 } }}>
-            <h3>Local Whisper Inference</h3>
-            <p>Integrates with a local Whisper neural net to grade complex word blends completely offline without sending data to the cloud.</p>
-            <p style={{ marginTop: '12px', fontWeight: 'bold', fontSize: '0.82rem', color: isServerConnected ? '#2ecc71' : '#e74c3c' }}>
-              Offline Engine: {isServerConnected ? 'Online (Local Inference Ready)' : 'Offline (Server connection available for local inference)'}
-            </p>
+          <motion.div className="arch-item arch-pink" variants={fadeUpFast} whileHover={isTouchDevice ? undefined : { y: -3, transition: { type: 'spring', stiffness: 200, damping: 12 } }}>
+            <span className="arch-number">03</span>
+            <h3>Speech Grading</h3>
+            <p>Grades complex word blends completely offline without sending data to the cloud.</p>
           </motion.div>
-          <motion.div className="arch-item" variants={fadeUpFast} whileHover={isTouchDevice ? undefined : { y: -3, transition: { type: 'spring', stiffness: 200, damping: 12 } }}>
-            <h3>COPPA-Safe Design</h3>
-            <p>Maintains absolute data privacy. All student interactions, audio streams, and lesson progress are kept on-device, resolving security and scaling hurdles.</p>
+          <motion.div className="arch-item arch-green" variants={fadeUpFast} whileHover={isTouchDevice ? undefined : { y: -3, transition: { type: 'spring', stiffness: 200, damping: 12 } }}>
+            <span className="arch-number">04</span>
+            <h3>Zero Data Stored</h3>
+            <p>All student interactions, audio streams, and lesson progress are kept on-device, never sent to servers.</p>
           </motion.div>
         </motion.div>
       </motion.section>
 
       <motion.section className="judge-faq-section" variants={fadeUp}>
-        <motion.h2 variants={fadeUpFast}>Investor & Judge Technical Q&A</motion.h2>
+        <motion.h2 variants={fadeUpFast}>Judge FAQ</motion.h2>
         <motion.p className="subtitle" variants={fadeUpFast} style={{ textAlign: 'center', marginBottom: '24px' }}>Addressing key scalability, privacy, and pedagogical design questions.</motion.p>
         <motion.div className="faq-accordion" variants={stagger}>
           {faqs.map((faq, index) => {
@@ -206,13 +219,7 @@ export function Home({ isServerConnected, onOpenApp, equippedItem }: HomeProps) 
                   transition={{ type: 'spring', stiffness: 400, damping: 20 }}
                 >
                   <span>{faq.q}</span>
-                  <motion.strong
-                    className="faq-toggle-icon"
-                    animate={{ rotate: isOpen ? 180 : 0 }}
-                    transition={{ type: 'spring', stiffness: 200, damping: 12 }}
-                  >
-                    {isOpen ? '−' : '+'}
-                  </motion.strong>
+                  <strong className="faq-toggle-icon">{isOpen ? '▾' : '▸'}</strong>
                 </motion.button>
                 <AnimatePresence>
                   {isOpen && (
@@ -230,6 +237,23 @@ export function Home({ isServerConnected, onOpenApp, equippedItem }: HomeProps) 
               </motion.div>
             );
           })}
+        </motion.div>
+      </motion.section>
+
+      <motion.section className="closing-banner" variants={fadeUp}>
+        <motion.div variants={fadeUpFast}>
+          <h2>20 Missions. One Journey.</h2>
+          <p>Help Zibi repair his ship, one word at a time.</p>
+          <motion.button
+            className="primary-action"
+            type="button"
+            onClick={onOpenApp}
+            whileHover={{ scale: 1.05, boxShadow: '7px 7px 0 #172033' }}
+            whileTap={{ scale: 0.96, boxShadow: '2px 2px 0 #172033' }}
+            transition={springTap}
+          >
+            Open Course &rarr;
+          </motion.button>
         </motion.div>
       </motion.section>
     </motion.main>

@@ -189,6 +189,35 @@ button:focus-visible {
   transform: rotate(-35deg);
 }
 
+/* Closing banner */
+.closing-banner {
+  border: 3px solid var(--line);
+  border-radius: var(--radius-card);
+  padding: clamp(32px, 6vw, 56px);
+  background: var(--ink);
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+
+.closing-banner h2 {
+  margin: 0 0 8px;
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  color: #ffffff;
+  font-family: var(--font-display);
+  line-height: 1;
+}
+
+.closing-banner p {
+  margin: 0 0 24px;
+  font-size: clamp(1rem, 2vw, 1.3rem);
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 800;
+}
+
+.closing-banner .primary-action {
+  display: inline-flex;
+}
+
 .course-layout,
 .lesson-layout,
 .rewards-layout,
@@ -1728,11 +1757,41 @@ button:focus-visible {
 }
 
 .pitch-card {
+  position: relative;
   border: 3px solid var(--line);
   border-radius: var(--radius-card);
   padding: 24px;
   background: #ffffff;
   box-shadow: var(--shadow);
+}
+
+.pitch-card-accent-red::before,
+.pitch-card-accent-green::before {
+  content: '';
+  position: absolute;
+  top: 12px;
+  left: 0;
+  width: 4px;
+  height: calc(100% - 24px);
+  border-radius: 0 2px 2px 0;
+}
+
+.pitch-card-accent-red::before {
+  background: #cc3333;
+}
+
+.pitch-card-accent-green::before {
+  background: #228844;
+}
+
+.pitch-card h2 {
+  font-size: clamp(1.55rem, 3vw, 2.3rem);
+  line-height: 1.1;
+}
+
+.pitch-card p {
+  font-size: 1rem;
+  line-height: 1.5;
 }
 
 .card-badge {
@@ -1776,9 +1835,10 @@ button:focus-visible {
 }
 
 .synth-demo-btn {
+  position: relative;
   border: 3px solid var(--line);
   border-radius: var(--radius-card);
-  background: var(--surface);
+  background: var(--btn-color, var(--surface));
   padding: 16px 12px;
   cursor: pointer;
   text-align: left;
@@ -1793,6 +1853,19 @@ button:focus-visible {
   .synth-demo-btn:hover {
     background: var(--yellow);
   }
+}
+
+.synth-demo-btn.is-playing {
+  animation: synthPlaying 600ms ease-out;
+}
+
+.synth-demo-btn.is-playing::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border: 3px solid var(--ink);
+  border-radius: calc(var(--radius-card) + 4px);
+  animation: pulseRing 600ms ease-out;
 }
 
 .synth-demo-btn:active {
@@ -1811,10 +1884,11 @@ button:focus-visible {
   color: var(--ink);
 }
 
-.synth-desc {
-  font-size: 0.7rem;
-  color: var(--ink-soft);
-  font-family: var(--font-mono);
+@keyframes synthPlaying {
+  0% { transform: scale(1); }
+  20% { transform: scale(0.97); }
+  40% { transform: scale(1.03); }
+  100% { transform: scale(1); }
 }
 
 /* Solution Architecture */
@@ -1834,14 +1908,54 @@ button:focus-visible {
 }
 
 .arch-item {
-  border: 2px solid var(--line);
+  position: relative;
+  border: 3px solid var(--line);
   border-radius: var(--radius-card);
-  padding: 18px;
-  background: #f8fbff;
+  padding: 24px 18px 18px;
+  box-shadow: var(--shadow);
+  background: linear-gradient(180deg, var(--module-soft), rgba(255,255,255,0.96) 42%), var(--surface);
+}
+
+.arch-yellow {
+  --module: var(--yellow);
+  --module-soft: #fff4b7;
+}
+
+.arch-blue {
+  --module: var(--blue);
+  --module-soft: #d9f6ff;
+}
+
+.arch-pink {
+  --module: var(--pink);
+  --module-soft: #ffe0ef;
+}
+
+.arch-green {
+  --module: var(--green);
+  --module-soft: #d9ffe3;
+}
+
+.arch-number {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--line);
+  border-radius: 50%;
+  background: var(--surface);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 1000;
+  line-height: 1;
 }
 
 .arch-item h3 {
   margin: 0 0 8px;
+  padding-left: 32px;
   font-size: 1.15rem;
   font-weight: 950;
 }
@@ -1894,15 +2008,10 @@ button:focus-visible {
   }
 }
 
-.faq-toggle-icon {
-  font-size: 1.3rem;
-  font-family: var(--font-mono);
-}
-
 .faq-answer {
   padding: 0 18px 18px;
   border-top: 2px dashed var(--line);
-  background: #fcfdfe;
+  background: #fff9e6;
 }
 
 .faq-answer p {
@@ -1910,6 +2019,12 @@ button:focus-visible {
   font-size: 0.95rem !important;
   line-height: 1.5 !important;
   color: var(--ink-soft);
+}
+
+.faq-toggle-icon {
+  font-size: 1.1rem;
+  font-family: var(--font-mono);
+  transition: transform 200ms ease;
 }
 
 @media (max-width: 900px) {
@@ -1928,7 +2043,9 @@ button:focus-visible {
 }
 
 @media (max-width: 560px) {
-  .synth-buttons-grid,
+  .synth-buttons-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
   .architecture-grid {
     grid-template-columns: 1fr;
   }

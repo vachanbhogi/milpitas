@@ -11,7 +11,11 @@ interface HomeProps {
 
 const springHover = { type: 'spring' as const, stiffness: 300, damping: 12 };
 const springTap = { type: 'spring' as const, stiffness: 500, damping: 20 };
-const isTouchDevice = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+const isTouchDevice = typeof window !== 'undefined' && (
+  window.matchMedia('(pointer: coarse)').matches ||
+  'ontouchstart' in window ||
+  (navigator.maxTouchPoints !== undefined && navigator.maxTouchPoints > 0)
+);
 const stagger: Variants = {
   hidden: {},
   visible: {

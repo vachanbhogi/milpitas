@@ -21,7 +21,11 @@ import { getHeardLabel, type TranscriptionSource } from '../soundSafari/transcri
 import { getSoundLabel } from '../soundSafari/scoring';
 
 const springTap = { type: 'spring' as const, stiffness: 500, damping: 20 };
-const isTouchDevice = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+const isTouchDevice = typeof window !== 'undefined' && (
+  window.matchMedia('(pointer: coarse)').matches ||
+  'ontouchstart' in window ||
+  (navigator.maxTouchPoints !== undefined && navigator.maxTouchPoints > 0)
+);
 const stagger: Variants = {
   hidden: {},
   visible: {
@@ -538,10 +542,28 @@ function LessonScreen({
 
           <AnimatePresence mode="wait">
             <motion.div key={lesson.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}>
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              variants={{
+                hidden: { opacity: 0, y: 10 },
+                visible: {
+                  opacity: 1,
+                  y: 0,
+                  transition: {
+                    duration: 0.25,
+                    ease: [0.23, 1, 0.32, 1]
+                  }
+                },
+                exit: {
+                  opacity: 0,
+                  y: -10,
+                  transition: {
+                    duration: 0.2
+                  }
+                }
+              }}
+            >
               {lesson.type === 'phonics' && (
                 <PhonicsMission
                   lesson={lesson}

@@ -1,11 +1,31 @@
+const WAV_HEADER_BYTES = 44;
+const PCM_FORMAT = 1;
+const PCM_BIT_DEPTH = 16;
+const CHILD_NARRATION_RATE = 0.85;
+const CHILD_PHONICS_RATE = 0.75;
+const CHILD_PHONICS_PITCH = 1.35;
+const NARRATION_EMOJI_PATTERN = /🔊|✏️|🔓|🔒|✨|⭐️|🎉|🪐|💫|🎨|🚀|🛸|🏆|🏅|👑|🔔/g;
+const HELD_PHONEME_PATTERN = /\b([smpalrt])\1{2,}\b/gi;
+const PHONEME_AUDIO_DELAY_MS = 850;
+
+type NarrationSegment =
+  | { type: 'text'; value: string }
+  | { type: 'phoneme'; value: string };
+
+type AudioContextRequest = Promise<AudioContext | null>;
+
+let audioCtx: AudioContext | null = null;
+let narrationSequence = 0;
+const activeUtterances = new Set<SpeechSynthesisUtterance>();
+
 /**
  * Resamples an AudioBuffer to 16kHz mono using OfflineAudioContext.
  */
 export async function resampleTo16kHzMono(audioBuffer: AudioBuffer): Promise<AudioBuffer> {
   const offlineCtx = new OfflineAudioContext(
-    1, // 1 channel (mono)
-    audioBuffer.duration * 16000, // length in samples
-    16000 // sample rate
+    1,
+    audioBuffer.duration * 16000,
+    16000
   );
 
   const bufferSource = offlineCtx.createBufferSource();
@@ -20,47 +40,31 @@ export async function resampleTo16kHzMono(audioBuffer: AudioBuffer): Promise<Aud
  * Encodes a mono 16kHz AudioBuffer to a 16-bit PCM WAV ArrayBuffer.
  */
 export function encodeWAV(audioBuffer: AudioBuffer): ArrayBuffer {
-  const numOfChan = audioBuffer.numberOfChannels;
-  const sampleRate = audioBuffer.sampleRate;
-  const format = 1; // 1 = Raw PCM
-  const bitDepth = 16;
-  
-  const result = audioBuffer.getChannelData(0); // mono
-  
-  const buffer = new ArrayBuffer(44 + result.length * 2);
-  const view = new DataView(buffer);
-  
-  /* RIFF identifier */
-  writeString(view, 0, 'RIFF');
-  /* file length */
-  view.setUint32(4, 36 + result.length * 2, true);
-  /* RIFF type */
-  writeString(view, 8, 'WAVE');
-  /* format chunk identifier */
-  writeString(view, 12, 'fmt ');
-  /* format chunk length */
-  view.setUint32(16, 16, true);
-  /* sample format (raw) */
-  view.setUint16(20, format, true);
-  /* channel count */
-  view.setUint16(22, numOfChan, true);
-  /* sample rate */
-  view.setUint32(24, sampleRate, true);
-  /* byte rate (sample rate * block align) */
-  view.setUint32(28, sampleRate * numOfChan * (bitDepth / 8), true);
-  /* block align (channel count * bytes per sample) */
-  view.setUint16(32, numOfChan * (bitDepth / 8), true);
-  /* bits per sample */
-  view.setUint16(34, bitDepth, true);
-  /* data chunk identifier */
-  writeString(view, 36, 'data');
-  /* chunk length */
-  view.setUint32(40, result.length * 2, true);
-  
-  // Write PCM audio samples
-  floatTo16BitPCM(view, 44, result);
-  
-  return buffer;
+  return encodeMonoPcmWav(audioBuffer.getChannelData(0), audioBuffer.sampleRate);
+}
+
+export function getAudioContext(): AudioContext {
+  if (!audioCtx) {
+    const AudioContextCtor = window.AudioContext
+      || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!AudioContextCtor) {
+      throw new Error('Web Audio is not supported in this browser.');
+    }
+    audioCtx = new AudioContextCtor();
+  }
+  return audioCtx;
+}
+
+/**
+ * Returns a running AudioContext, resuming it if suspended.
+ * Must be called from within a user-gesture handler or after one.
+ */
+export async function getRunningAudioContext(): Promise<AudioContext> {
+  const ctx = getAudioContext();
+  if (ctx.state === 'suspended') {
+    await ctx.resume();
+  }
+  return ctx;
 }
 
 let synthCtx: AudioContext | null = null;
@@ -83,7 +87,6 @@ export async function playSynthesizedPhonics(target: string): Promise<void> {
   if (!ctx) return;
   const cleanTarget = target.toLowerCase().trim();
 
-  // Helper for generating white noise
   const createNoiseBuffer = (duration: number) => {
     const bufferSize = ctx.sampleRate * duration;
     const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
@@ -257,107 +260,223 @@ export async function playSynthesizedPhonics(target: string): Promise<void> {
   // Dispatch play events
   if (cleanTarget === 's' || cleanTarget === 'ssss' || cleanTarget === '/s/') {
     playS();
+    return 0.7;
   } else if (cleanTarget === 'm' || cleanTarget === 'mmmm' || cleanTarget === '/m/') {
     playM();
+    return 0.7;
   } else if (cleanTarget === 'a' || cleanTarget === 'aaa' || cleanTarget === '/æ/' || cleanTarget === '/a/' || cleanTarget === '/ă/') {
     playA();
+    return 0.7;
   } else if (cleanTarget === 't' || cleanTarget === '/t/') {
     playT();
+    return 0.08;
   } else if (cleanTarget === 'p' || cleanTarget === '/p/') {
     playP();
+    return 0.08;
   } else if (cleanTarget === 'sat') {
     playS(0, 0.35);
     playA(0.32, 0.35);
     playT(0.65);
+    return 0.73;
   } else if (cleanTarget === 'mat') {
     playM(0, 0.35);
     playA(0.32, 0.35);
     playT(0.65);
+    return 0.73;
   } else if (cleanTarget === 'pat') {
     playP(0);
     playA(0.12, 0.35);
     playT(0.45);
+    return 0.53;
   } else {
     try {
       const utterance = new SpeechSynthesisUtterance(cleanTarget);
-      utterance.rate = 0.75;
-      utterance.pitch = 1.35;
+      utterance.rate = CHILD_PHONICS_RATE;
+      utterance.pitch = CHILD_PHONICS_PITCH;
       window.speechSynthesis.speak(utterance);
     } catch {
       // Audio fallback is a best-effort experience.
     }
+    return estimateSpeechDuration(cleanTarget);
   }
 }
 
-
-function floatTo16BitPCM(output: DataView, offset: number, input: Float32Array) {
+function floatTo16BitPCM(output: DataView, offset: number, input: Float32Array): void {
   for (let i = 0; i < input.length; i++, offset += 2) {
     const s = Math.max(-1, Math.min(1, input[i]));
-    // 16-bit signed integer scaling
     const val = s < 0 ? s * 0x8000 : s * 0x7FFF;
     output.setInt16(offset, val, true);
   }
 }
 
-function writeString(view: DataView, offset: number, string: string) {
+function writeString(view: DataView, offset: number, string: string): void {
   for (let i = 0; i < string.length; i++) {
     view.setUint8(offset + i, string.charCodeAt(i));
   }
+}
+
+function encodeMonoPcmWav(samples: Float32Array, sampleRate: number): ArrayBuffer {
+  const channelCount = 1;
+  const bytesPerSample = PCM_BIT_DEPTH / 8;
+  const buffer = new ArrayBuffer(WAV_HEADER_BYTES + samples.length * bytesPerSample);
+  const view = new DataView(buffer);
+
+  writeWavHeader(view, {
+    byteLength: samples.length * bytesPerSample,
+    channelCount,
+    sampleRate,
+    bytesPerSample,
+  });
+  floatTo16BitPCM(view, WAV_HEADER_BYTES, samples);
+
+  return buffer;
+}
+
+function writeWavHeader(
+  view: DataView,
+  options: { byteLength: number; channelCount: number; sampleRate: number; bytesPerSample: number }
+): void {
+  const { byteLength, channelCount, sampleRate, bytesPerSample } = options;
+  const blockAlign = channelCount * bytesPerSample;
+
+  writeString(view, 0, 'RIFF');
+  view.setUint32(4, 36 + byteLength, true);
+  writeString(view, 8, 'WAVE');
+  writeString(view, 12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, PCM_FORMAT, true);
+  view.setUint16(22, channelCount, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * blockAlign, true);
+  view.setUint16(32, blockAlign, true);
+  view.setUint16(34, PCM_BIT_DEPTH, true);
+  writeString(view, 36, 'data');
+  view.setUint32(40, byteLength, true);
 }
 
 /**
  * Encodes a raw Float32Array containing 16kHz mono audio into a 16-bit PCM WAV.
  */
 export function encodeFloat32ArrayToWav(samples: Float32Array, sampleRate = 16000): ArrayBuffer {
-  const numOfChan = 1;
-  const format = 1; // 1 = Raw PCM
-  const bitDepth = 16;
-  
-  const buffer = new ArrayBuffer(44 + samples.length * 2);
-  const view = new DataView(buffer);
-  
-  /* RIFF identifier */
-  writeString(view, 0, 'RIFF');
-  /* file length */
-  view.setUint32(4, 36 + samples.length * 2, true);
-  /* RIFF type */
-  writeString(view, 8, 'WAVE');
-  /* format chunk identifier */
-  writeString(view, 12, 'fmt ');
-  /* format chunk length */
-  view.setUint32(16, 16, true);
-  /* sample format (raw) */
-  view.setUint16(20, format, true);
-  /* channel count */
-  view.setUint16(22, numOfChan, true);
-  /* sample rate */
-  view.setUint32(24, sampleRate, true);
-  /* byte rate (sample rate * block align) */
-  view.setUint32(28, sampleRate * numOfChan * (bitDepth / 8), true);
-  /* block align (channel count * bytes per sample) */
-  view.setUint16(32, numOfChan * (bitDepth / 8), true);
-  /* bits per sample */
-  view.setUint16(34, bitDepth, true);
-  /* data chunk identifier */
-  writeString(view, 36, 'data');
-  /* chunk length */
-  view.setUint32(40, samples.length * 2, true);
-  
-  // Write PCM audio samples
-  floatTo16BitPCM(view, 44, samples);
-  
-  return buffer;
+  return encodeMonoPcmWav(samples, sampleRate);
 }
 
 /**
  * Uses SpeechSynthesis to read text instructions aloud for pre-literate children.
  */
 export function speakText(text: string): void {
-  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-    window.speechSynthesis.cancel();
-    const clean = text.replace(/🔊|✏️|🔓|🔒|✨|⭐️|🎉|🪐|💫|🎨|🚀|🛸|🏆|🏅|👑|🔔/g, ''); // strip emojis
-    const utterance = new SpeechSynthesisUtterance(clean);
-    utterance.rate = 0.85; // slightly slower speed for clarity
-    window.speechSynthesis.speak(utterance);
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+    return;
   }
+
+  const sequenceId = ++narrationSequence;
+  const segments = getNarrationSegments(text);
+
+  if (segments.length === 1 && segments[0].type === 'text') {
+    speakPlainText(segments[0].value);
+    return;
+  }
+
+  const audioContextRequest = segments.some(segment => segment.type === 'phoneme')
+    ? getRunningAudioContext().catch(() => null)
+    : Promise.resolve(null);
+
+  window.speechSynthesis.cancel();
+  void playNarrationSegments(segments, sequenceId, audioContextRequest);
+}
+
+function getNarrationSegments(text: string): NarrationSegment[] {
+  const clean = text.replace(NARRATION_EMOJI_PATTERN, '');
+  const segments: NarrationSegment[] = [];
+  let cursor = 0;
+
+  for (const match of clean.matchAll(HELD_PHONEME_PATTERN)) {
+    if (match.index === undefined) continue;
+
+    if (match.index > cursor) {
+      segments.push({ type: 'text', value: clean.slice(cursor, match.index) });
+    }
+
+    segments.push({ type: 'phoneme', value: match[1].toLowerCase() });
+    cursor = match.index + match[0].length;
+  }
+
+  if (cursor < clean.length) {
+    segments.push({ type: 'text', value: clean.slice(cursor) });
+  }
+
+  return segments.filter(segment => segment.value.trim().length > 0);
+}
+
+async function playNarrationSegments(
+  segments: NarrationSegment[],
+  sequenceId: number,
+  audioContextRequest: AudioContextRequest
+): Promise<void> {
+  for (const segment of segments) {
+    if (sequenceId !== narrationSequence) return;
+
+    if (segment.type === 'text') {
+      await speakNarrationSegment(segment.value);
+    } else {
+      await playPhonemeNarrationSegment(segment.value, audioContextRequest);
+    }
+  }
+}
+
+function speakNarrationSegment(text: string): Promise<void> {
+  return new Promise(resolve => {
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = CHILD_NARRATION_RATE;
+    utterance.onend = () => {
+      releaseUtterance(utterance);
+      resolve();
+    };
+    utterance.onerror = () => {
+      releaseUtterance(utterance);
+      resolve();
+    };
+    retainUtterance(utterance);
+    window.speechSynthesis.speak(utterance);
+  });
+}
+
+function speakPlainText(text: string): void {
+  window.speechSynthesis.cancel();
+
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.rate = CHILD_NARRATION_RATE;
+  utterance.onend = () => releaseUtterance(utterance);
+  utterance.onerror = () => releaseUtterance(utterance);
+  retainUtterance(utterance);
+  window.speechSynthesis.speak(utterance);
+}
+
+function retainUtterance(utterance: SpeechSynthesisUtterance): void {
+  activeUtterances.add(utterance);
+}
+
+function releaseUtterance(utterance: SpeechSynthesisUtterance): void {
+  activeUtterances.delete(utterance);
+}
+
+async function playPhonemeNarrationSegment(phoneme: string, audioContextRequest: AudioContextRequest): Promise<void> {
+  try {
+    const ctx = await audioContextRequest;
+    if (!ctx) throw new Error('Web Audio is unavailable.');
+    const seconds = playSynthesizedPhonicsWithCtx(ctx, phoneme);
+    await delay(Math.max(PHONEME_AUDIO_DELAY_MS, seconds * 1000));
+  } catch {
+    await speakNarrationSegment(`${phoneme} sound`);
+  }
+}
+
+function estimateSpeechDuration(text: string): number {
+  return Math.max(0.35, text.length * 0.045);
+}
+
+function delay(durationMs: number): Promise<void> {
+  return new Promise(resolve => {
+    window.setTimeout(resolve, durationMs);
+  });
 }

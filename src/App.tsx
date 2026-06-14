@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useMicrophone } from './hooks/useMicrophone';
 import { useLiveVoiceAnalyzer } from './hooks/useLiveVoiceAnalyzer';
-import { playSynthesizedPhonics, speakText } from './audioUtils';
+import { getRunningAudioContext, playSynthesizedPhonics, speakText } from './audioUtils';
 import { COURSE_MODULES } from './course/courseModules';
 import { scoreWordAttempt } from './soundSafari/scoring';
 import { transcribeAttempt, type TranscriptionSource } from './soundSafari/transcribeAttempt';
@@ -34,12 +34,7 @@ const EMPTY_VOICE: VoiceSnapshot = {
 };
 
 function playSoundEffect(type: 'success' | 'fail') {
-  try {
-    const AudioContextCtor = window.AudioContext
-      || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-    if (!AudioContextCtor) return;
-
-    const ctx = new AudioContextCtor();
+  getRunningAudioContext().then(ctx => {
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
 
@@ -65,9 +60,9 @@ function playSoundEffect(type: 'success' | 'fail') {
       osc.start();
       osc.stop(ctx.currentTime + 0.26);
     }
-  } catch {
+  }).catch(() => {
     // Audio feedback is optional
-  }
+  });
 }
 
 function isPhonicsLesson(lesson: Lesson): lesson is PhonicsLesson {
@@ -378,11 +373,10 @@ function App() {
     }
   };
 
-
   const handleChoice = (choiceId: string) => {
     if (!isChoiceLesson(activeLesson) || lessonStatus === 'success') return;
     setSelectedChoiceId(choiceId);
-    void playSynthesizedPhonics(choiceId);
+    void playSynthesizedPhonics(choiceId[0] || choiceId);
 
     if (choiceId === activeLesson.correctChoiceId) {
       markLessonComplete(activeLesson);
@@ -497,7 +491,6 @@ function App() {
 
       {view === 'home' && (
         <Home 
-          isServerConnected={isServerConnected} 
           onOpenApp={() => setView('course')} 
           equippedItem={equippedItem}
         />

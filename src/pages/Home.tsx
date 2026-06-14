@@ -66,7 +66,7 @@ export function Home({ isServerConnected, onOpenApp, equippedItem }: HomeProps) 
     <motion.main className="pitch-layout" initial="hidden" animate="visible" variants={stagger}>
       <motion.section className="pitch-cover" variants={fadeUp}>
         <motion.div className="pitch-intro" variants={stagger}>
-          <motion.p className="eyebrow" variants={fadeUpFast}>Milpitas Hacks 2 • Product Pitch & Showcase</motion.p>
+
           <motion.h1 variants={fadeUpFast}>Mumble</motion.h1>
           <motion.p className="pitch-tagline" variants={fadeUpFast}>
             Speak. Zibi listens. No reading required.

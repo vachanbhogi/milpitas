@@ -63,11 +63,24 @@ export function encodeWAV(audioBuffer: AudioBuffer): ArrayBuffer {
   return buffer;
 }
 
-export function playSynthesizedPhonics(target: string): void {
+let synthCtx: AudioContext | null = null;
+
+async function getSynthCtx(): Promise<AudioContext | null> {
   const AudioContextCtor = window.AudioContext
     || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-  if (!AudioContextCtor) return;
-  const ctx = new AudioContextCtor();
+  if (!AudioContextCtor) return null;
+  if (!synthCtx || synthCtx.state === 'closed') {
+    synthCtx = new AudioContextCtor();
+  }
+  if (synthCtx.state === 'suspended') {
+    await synthCtx.resume();
+  }
+  return synthCtx;
+}
+
+export async function playSynthesizedPhonics(target: string): Promise<void> {
+  const ctx = await getSynthCtx();
+  if (!ctx) return;
   const cleanTarget = target.toLowerCase().trim();
 
   // Helper for generating white noise

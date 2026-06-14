@@ -2,8 +2,9 @@ import { motion, type TargetAndTransition } from 'framer-motion';
 
 interface MascotSceneProps {
   progress: number;
-  mood: 'idle' | 'listening' | 'happy' | 'thinking' | 'retry' | 'launch';
+  mood: 'idle' | 'listening' | 'happy' | 'thinking' | 'retry' | 'launch' | 'reading';
   equippedItem?: string | null;
+  hideShip?: boolean;
 }
 
 const moodAnimations: Record<string, { alien: TargetAndTransition; ship: TargetAndTransition }> = {
@@ -32,6 +33,10 @@ const moodAnimations: Record<string, { alien: TargetAndTransition; ship: TargetA
     alien: { scale: 0.98, rotate: -3, y: -2 },
     ship: { y: -3, rotate: 8 },
   },
+  reading: {
+    alien: { scale: 0.97, rotate: 4, y: -4 },
+    ship: { y: 2, rotate: 6 },
+  },
   retry: {
     alien: { scale: 0.97, rotate: 4, y: 2 },
     ship: { y: 2, rotate: 6 },
@@ -42,7 +47,7 @@ const moodAnimations: Record<string, { alien: TargetAndTransition; ship: TargetA
   },
 };
 
-export function MascotScene({ progress, mood, equippedItem = null }: MascotSceneProps) {
+export function MascotScene({ progress, mood, equippedItem = null, hideShip = false }: MascotSceneProps) {
   const flameScale = Math.max(progress, 12) / 100;
 
   const alienSpring = { type: 'spring' as const, stiffness: 200, damping: 16, mass: 0.8 };
@@ -50,26 +55,28 @@ export function MascotScene({ progress, mood, equippedItem = null }: MascotScene
 
   return (
     <motion.div
-      className={`mascot-scene mood-${mood} ${mood === 'launch' ? 'is-launching' : ''}`}
-      aria-label={`Zibi ship ${progress}% repaired`}
+      className={`mascot-scene mood-${mood} ${mood === 'launch' ? 'is-launching' : ''} ${hideShip ? 'hide-ship' : ''}`}
+      aria-label={hideShip ? 'Zibi' : `Zibi ship ${progress}% repaired`}
     >
-      <motion.div
-        className="ship-wrap"
-        aria-hidden="true"
-        animate={moodAnimations[mood]?.ship || moodAnimations.idle.ship}
-        transition={shipSpring}
-      >
-        <div className="ship">
-          <span className="ship-window" />
-          <span className="ship-fin left" />
-          <span className="ship-fin right" />
-          <motion.span
-            className="ship-flame"
-            animate={{ scaleY: flameScale }}
-            transition={{ type: 'spring', stiffness: 100, damping: 8 }}
-          />
-        </div>
-      </motion.div>
+      {!hideShip && (
+        <motion.div
+          className="ship-wrap"
+          aria-hidden="true"
+          animate={moodAnimations[mood]?.ship || moodAnimations.idle.ship}
+          transition={shipSpring}
+        >
+          <div className="ship">
+            <span className="ship-window" />
+            <span className="ship-fin left" />
+            <span className="ship-fin right" />
+            <motion.span
+              className="ship-flame"
+              animate={{ scaleY: flameScale }}
+              transition={{ type: 'spring', stiffness: 100, damping: 8 }}
+            />
+          </div>
+        </motion.div>
+      )}
       <motion.div
         className="alien"
         aria-hidden="true"
@@ -134,6 +141,7 @@ export function MascotScene({ progress, mood, equippedItem = null }: MascotScene
         <span className="eye right" />
         <span className="smile" />
         <span className="belly" />
+        {mood === 'reading' && <span className="book"><span className="bookmark" /></span>}
       </motion.div>
     </motion.div>
   );

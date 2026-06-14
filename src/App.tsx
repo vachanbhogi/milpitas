@@ -382,7 +382,7 @@ function App() {
   const handleChoice = (choiceId: string) => {
     if (!isChoiceLesson(activeLesson) || lessonStatus === 'success') return;
     setSelectedChoiceId(choiceId);
-    playSynthesizedPhonics(choiceId);
+    void playSynthesizedPhonics(choiceId);
 
     if (choiceId === activeLesson.correctChoiceId) {
       markLessonComplete(activeLesson);
@@ -402,7 +402,7 @@ function App() {
     if (!isSentenceLesson(activeLesson) || lessonStatus === 'success') return;
     if (selectedTiles.includes(tile)) return;
 
-    playSynthesizedPhonics(tile);
+    void playSynthesizedPhonics(tile);
 
     const nextTiles = [...selectedTiles, tile];
     setSelectedTiles(nextTiles);

@@ -692,11 +692,11 @@ function PhonicsMission({
         role="button"
         tabIndex={0}
         aria-label={`Teach Zibi target sound: ${lesson.targetText}. Tap or press enter to hear.`}
-        onClick={() => playSynthesizedPhonics(lesson.targetText)}
+        onClick={() => void playSynthesizedPhonics(lesson.targetText)}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
-            playSynthesizedPhonics(lesson.targetText);
+            void playSynthesizedPhonics(lesson.targetText);
           }
         }}
         style={{ cursor: 'pointer' }}
@@ -718,7 +718,7 @@ function PhonicsMission({
               variants={fadeUpFast}
               onClick={(e) => {
                 e.stopPropagation();
-                playSynthesizedPhonics(part);
+                void playSynthesizedPhonics(part);
               }}
               style={{ cursor: 'pointer' }}
               whileHover={isTouchDevice ? undefined : { scale: 1.12, y: -2, boxShadow: '6px 6px 0 #172033' }}

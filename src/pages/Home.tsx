@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { MascotScene } from '../components/MascotScene';
-import { playSynthesizedPhonics, speakText } from '../audioUtils';
+import { speakText } from '../audioUtils';
 
 interface HomeProps {
   isServerConnected: boolean | null;
@@ -43,21 +43,6 @@ export function Home({ isServerConnected, onOpenApp, equippedItem }: HomeProps) 
     return () => clearTimeout(timer);
   }, []);
 
-  const [playingSound, setPlayingSound] = useState<string | null>(null);
-
-  const demoColors = ['var(--yellow)', 'var(--blue)', 'var(--pink)', 'var(--green)'];
-
-  const demoSounds = [
-    { target: 'S', label: 'Hissy Air' },
-    { target: 'M', label: 'Moon Hum' },
-    { target: 'A', label: 'Open Vowel' },
-    { target: 'T', label: 'Quick Tap' },
-    { target: 'P', label: 'Pop Pod' },
-    { target: 'SAT', label: 'Blend: SAT' },
-    { target: 'MAT', label: 'Blend: MAT' },
-    { target: 'PAT', label: 'Blend: PAT' },
-  ];
-
   const faqs = [
     {
       q: "How does Mumble protect kids' privacy?",
@@ -84,7 +69,7 @@ export function Home({ isServerConnected, onOpenApp, equippedItem }: HomeProps) 
           <motion.p className="eyebrow" variants={fadeUpFast}>Milpitas Hacks 2 • Product Pitch & Showcase</motion.p>
           <motion.h1 variants={fadeUpFast}>Mumble</motion.h1>
           <motion.p className="pitch-tagline" variants={fadeUpFast}>
-            Empowering pre-readers with privacy-first, voice-native speech game loops and real-time browser formant synthesis.
+            Speak. Zibi listens. No reading required.
           </motion.p>
           <motion.div className="hero-actions" variants={fadeUpFast} style={{ display: 'grid', gap: '16px', justifyItems: 'start' }}>
             <motion.button
@@ -101,21 +86,8 @@ export function Home({ isServerConnected, onOpenApp, equippedItem }: HomeProps) 
               type="button"
               className="audio-guide-btn"
               onClick={() => speakText("Just press start!")}
-              style={{
-                background: 'var(--yellow-soft)',
-                border: '3px solid var(--line)',
-                borderRadius: '999px',
-                padding: '8px 16px',
-                fontWeight: 'bold',
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                boxShadow: '3px 3px 0 var(--line)',
-                fontSize: '1.2rem'
-              }}
             >
-              Hear instructions: "Just press start!"
+              Hear instructions
             </button>
           </motion.div>
         </motion.div>
@@ -124,52 +96,25 @@ export function Home({ isServerConnected, onOpenApp, equippedItem }: HomeProps) 
         </motion.div>
       </motion.section>
 
-      <motion.section className="pitch-problem-outcome" variants={fadeUp}>
-        <motion.div className="pitch-card problem-card pitch-card-accent-red" variants={fadeUpFast} whileHover={isTouchDevice ? undefined : { y: -4, boxShadow: '0 20px 0 rgba(23,32,51,0.14)' }} transition={springHover}>
-          <span className="card-badge badge-red">The Problem</span>
-          <h2>Most literacy apps assume kids can already read.</h2>
-          <p>Traditional early literacy apps require children to read written text instructions just to learn how to read.</p>
-        </motion.div>
-        <motion.div className="pitch-card outcome-card pitch-card-accent-green" variants={fadeUpFast} whileHover={isTouchDevice ? undefined : { y: -4, boxShadow: '0 20px 0 rgba(23,32,51,0.14)' }} transition={springHover}>
-          <span className="card-badge badge-green">The Solution</span>
-          <h2>Mumble flips the script.</h2>
-          <p>Children speak. Zibi listens. No reading required.</p>
+      <motion.section className="origin-story" variants={fadeUp}>
+        <motion.div variants={fadeUpFast}>
+          <span className="card-badge badge-green">A Message from One of the Founders</span>
+          <div className="origin-quote-mark" aria-hidden="true">&ldquo;</div>
+          <h2>I struggled to read.</h2>
+          <p className="origin-text">
+            When I was very little, my school put me in front of programs like Lexia before I could read. I'm very fortunate to have a mom that sat with me and worked through it with me. I know not everyone has the privilege of having parents who can always help you study. Mumble wants every kid to have a chance to learn.
+          </p>
         </motion.div>
       </motion.section>
 
-      <motion.section className="pitch-sound-lab" variants={fadeUp}>
-        <motion.h2 variants={fadeUpFast}>Interactive Formant Synth Sandbox</motion.h2>
-        <motion.p className="subtitle" variants={fadeUpFast}>
-          Click any sound to hear Zibi's voice engine in action.
-        </motion.p>
-        <motion.div className="synth-buttons-grid" variants={stagger}>
-          {demoSounds.map((sound, i) => {
-            const isPlaying = playingSound === sound.target;
-            return (
-              <motion.button
-                key={sound.target}
-                className={`synth-demo-btn${isPlaying ? ' is-playing' : ''}`}
-                type="button"
-                onClick={() => {
-                  setPlayingSound(sound.target);
-                  playSynthesizedPhonics(sound.target);
-                  setTimeout(() => setPlayingSound(null), 600);
-                }}
-                variants={fadeUpFast}
-                style={{ '--btn-color': demoColors[i % 4] } as React.CSSProperties}
-                whileHover={isTouchDevice ? undefined : {
-                  scale: 1.06,
-                  y: -3,
-                  boxShadow: '7px 7px 0 #172033',
-                  transition: { type: 'spring', stiffness: 300, damping: 12 },
-                }}
-                whileTap={{ scale: 0.95, boxShadow: '2px 2px 0 #172033' }}
-              >
-                <strong>{sound.target}</strong>
-                <span className="synth-label">{sound.label}</span>
-              </motion.button>
-            );
-          })}
+      <motion.section className="pitch-problem-outcome" variants={fadeUp}>
+        <motion.div className="pitch-card problem-card pitch-card-accent-red" variants={fadeUpFast} whileHover={isTouchDevice ? undefined : { y: -4, boxShadow: '0 20px 0 rgba(23,32,51,0.14)' }} transition={springHover}>
+          <span className="card-badge badge-red">The Real Technical Problem</span>
+          <h3>COPPA compliance bans cloud audio. Single-threaded JS freezes under DSP+AI. Schools ship low-end Chromebooks.</h3>
+        </motion.div>
+        <motion.div className="pitch-card outcome-card pitch-card-accent-green" variants={fadeUpFast} whileHover={isTouchDevice ? undefined : { y: -4, boxShadow: '0 20px 0 rgba(23,32,51,0.14)' }} transition={springHover}>
+          <span className="card-badge badge-green">The Real Engineering Solution</span>
+          <h3>Local whisper.cpp server keeps audio on-device. Web Audio API + AudioWorklet offload DSP off the main thread. Biquad filters + modulated oscillators close the feedback loop instantly.</h3>
         </motion.div>
       </motion.section>
 
@@ -181,31 +126,75 @@ export function Home({ isServerConnected, onOpenApp, equippedItem }: HomeProps) 
         
         <motion.div className="architecture-grid" variants={stagger}>
           <motion.div className="arch-item arch-yellow" variants={fadeUpFast} whileHover={isTouchDevice ? undefined : { y: -3, transition: { type: 'spring', stiffness: 200, damping: 12 } }}>
-            <span className="arch-number">01</span>
             <h3>Audio Capture</h3>
             <p>Captures microphone signals in a separate 16kHz background thread with zero lag.</p>
           </motion.div>
           <motion.div className="arch-item arch-blue" variants={fadeUpFast} whileHover={isTouchDevice ? undefined : { y: -3, transition: { type: 'spring', stiffness: 200, damping: 12 } }}>
-            <span className="arch-number">02</span>
             <h3>Voice Synthesis</h3>
             <p>Models the human vocal tract in real-time using chained biquad filters and modulated oscillators.</p>
           </motion.div>
           <motion.div className="arch-item arch-pink" variants={fadeUpFast} whileHover={isTouchDevice ? undefined : { y: -3, transition: { type: 'spring', stiffness: 200, damping: 12 } }}>
-            <span className="arch-number">03</span>
             <h3>Speech Grading</h3>
             <p>Grades complex word blends completely offline without sending data to the cloud.</p>
           </motion.div>
           <motion.div className="arch-item arch-green" variants={fadeUpFast} whileHover={isTouchDevice ? undefined : { y: -3, transition: { type: 'spring', stiffness: 200, damping: 12 } }}>
-            <span className="arch-number">04</span>
             <h3>Zero Data Stored</h3>
             <p>All student interactions, audio streams, and lesson progress are kept on-device, never sent to servers.</p>
           </motion.div>
         </motion.div>
+
       </motion.section>
 
-      <motion.section className="judge-faq-section" variants={fadeUp}>
-        <motion.h2 variants={fadeUpFast}>Judge FAQ</motion.h2>
-        <motion.p className="subtitle" variants={fadeUpFast} style={{ textAlign: 'center', marginBottom: '24px' }}>Addressing key scalability, privacy, and pedagogical design questions.</motion.p>
+      <motion.section className="design-section" variants={fadeUp}>
+        <motion.div className="architecture-header" variants={fadeUpFast}>
+          <h2>Design Decisions</h2>
+          <p>Every choice starts with one question: can a toddler use this alone?</p>
+        </motion.div>
+        <motion.div className="design-timeline" variants={stagger}>
+          {[
+            {
+              title: 'Privacy-First Onboarding',
+              desc: 'No accounts, no email, no data leaves the device. Open the app and press START — zero friction, zero compliance risk.',
+              color: 'var(--blue)'
+            },
+            {
+              title: 'Offline by Default',
+              desc: 'Every feature works without internet. Audio capture, speech synthesis, AI inference, and grading all run locally — no server dependency.',
+              color: 'var(--orange)'
+            },
+            {
+              title: 'Child-Led Pacing',
+              desc: 'No timers, no fail states, no pressure. The child controls the rhythm — repeat a lesson ten times or breeze through. Zibi waits patiently.',
+              color: 'var(--pink)'
+            },
+            {
+              title: 'Visual Progress Metaphor',
+              desc: 'Repair Zibi\'s ship and explore a planet map instead of filling progress bars. Learning feels like a story, not a checklist.',
+              color: 'var(--yellow)'
+            },
+            {
+              title: 'Color-Coded Phonics',
+              desc: 'Every phoneme has a consistent color across lessons, blending practice, and rewards. Children build pattern recognition without needing to read.',
+              color: 'var(--violet)'
+            }
+          ].map((item, i) => (
+            <motion.div key={i} className="timeline-item" variants={fadeUpFast}>
+              <div className="timeline-dot" style={{ background: item.color }} />
+              <motion.div
+                className="timeline-card"
+                style={{ '--tl-color': item.color } as React.CSSProperties}
+                whileHover={isTouchDevice ? undefined : { x: 4, transition: { type: 'spring', stiffness: 200, damping: 12 } }}
+              >
+                <h3>{item.title}</h3>
+                <p>{item.desc}</p>
+              </motion.div>
+            </motion.div>
+          ))}
+        </motion.div>
+      </motion.section>
+
+        <motion.section className="judge-faq-section" variants={fadeUp}>
+          <motion.h2 variants={fadeUpFast}>Judge FAQ</motion.h2>
         <motion.div className="faq-accordion" variants={stagger}>
           {faqs.map((faq, index) => {
             const isOpen = activeFaq === index;
@@ -241,20 +230,21 @@ export function Home({ isServerConnected, onOpenApp, equippedItem }: HomeProps) 
       </motion.section>
 
       <motion.section className="closing-banner" variants={fadeUp}>
-        <motion.div variants={fadeUpFast}>
-          <h2>20 Missions. One Journey.</h2>
-          <p>Help Zibi repair his ship, one word at a time.</p>
-          <motion.button
-            className="primary-action"
-            type="button"
-            onClick={onOpenApp}
-            whileHover={{ scale: 1.05, boxShadow: '7px 7px 0 #172033' }}
-            whileTap={{ scale: 0.96, boxShadow: '2px 2px 0 #172033' }}
-            transition={springTap}
-          >
-            Open Course &rarr;
-          </motion.button>
-        </motion.div>
+        <h2>20 Missions. One Journey.</h2>
+        <p>Help Zibi repair his ship, one word at a time.</p>
+        <motion.button
+          className="primary-action"
+          type="button"
+          onClick={onOpenApp}
+          whileHover={{ scale: 1.05, boxShadow: '7px 7px 0 #172033' }}
+          whileTap={{ scale: 0.96, boxShadow: '2px 2px 0 #172033' }}
+          transition={springTap}
+        >
+          Open Course &rarr;
+        </motion.button>
+        <div className="closing-mascot">
+          <MascotScene progress={60} mood="reading" equippedItem={equippedItem} hideShip />
+        </div>
       </motion.section>
     </motion.main>
   );

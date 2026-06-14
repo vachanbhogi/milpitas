@@ -4,8 +4,8 @@ import { writingModule } from './modules/writing';
 
 const lettersModule: CourseModule = {
   id: 'letters',
-  title: 'Letter Lagoon',
-  planet: 'Glow Letter Lagoon',
+  title: 'Letter Launchpad',
+  planet: 'Glow Letter Planet',
   mission: 'Match Earth sounds to big bright letters.',
   colorClass: 'blue',
   lessons: [
@@ -99,8 +99,8 @@ const lettersModule: CourseModule = {
 
 const grammarModule: CourseModule = {
   id: 'grammar',
-  title: 'Tiny Talk Town',
-  planet: 'Sentence Town',
+  title: 'Sentence Starship',
+  planet: 'Sentence Galaxy',
   mission: 'Help Zibi build tiny Earth ideas with pictures.',
   colorClass: 'pink',
   lessons: [
@@ -168,8 +168,8 @@ const grammarModule: CourseModule = {
 };
 
 export const COURSE_MODULES: CourseModule[] = [
-  phonicsModule,
   lettersModule,
-  grammarModule,
   writingModule,
+  phonicsModule,
+  grammarModule,
 ];

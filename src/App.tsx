@@ -88,7 +88,7 @@ function isWritingLesson(lesson: Lesson): lesson is WritingLesson {
 
 function App() {
   const [view, setView] = useState<View>('home');
-  const [activeModuleId, setActiveModuleId] = useState<ModuleId>('phonics');
+  const [activeModuleId, setActiveModuleId] = useState<ModuleId>('letters');
   const [activeLessonId, setActiveLessonId] = useState<string>(COURSE_MODULES[0].lessons[0].id);
   const [completedLessons, setCompletedLessons] = useState<Set<string>>(() => new Set());
   const [lessonStatus, setLessonStatus] = useState<LessonStatus>('idle');
@@ -247,6 +247,7 @@ function App() {
 
   const restartCourse = () => {
     setCompletedLessons(new Set());
+    setActiveModuleId(COURSE_MODULES[0].id);
     setActiveLessonId(COURSE_MODULES[0].lessons[0].id);
     resetLessonInteraction(COURSE_MODULES[0].lessons[0], false);
     setGlowCoins(0);

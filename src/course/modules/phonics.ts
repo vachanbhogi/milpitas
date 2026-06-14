@@ -2,9 +2,9 @@ import type { CourseModule } from '../../types';
 
 export const phonicsModule: CourseModule = {
   id: 'phonics',
-  title: 'Sound Safari',
-  planet: 'Echo Planet',
-  mission: 'Teach Zibi the Earth words that wake up the ship.',
+  title: 'Word Safari',
+  planet: 'Reading Planet',
+  mission: 'Teach Zibi to read full Earth words to power up the spaceship.',
   colorClass: 'yellow',
   lessons: [
     {

@@ -62,9 +62,7 @@ export function scoreWordAttempt(lesson: PhonicsLesson, transcript: string): Sco
 
   return {
     success,
-    message: success
-      ? `Yes! Zibi heard "${lesson.targetText}"! 🎉`
-      : `Zibi heard "${transcript}". ${lesson.retryPrompt}`,
+    message: success ? 'Great!' : lesson.retryPrompt,
   };
 }
 

@@ -92,7 +92,7 @@ function App() {
   const [activeLessonId, setActiveLessonId] = useState<string>(COURSE_MODULES[0].lessons[0].id);
   const [completedLessons, setCompletedLessons] = useState<Set<string>>(() => new Set());
   const [lessonStatus, setLessonStatus] = useState<LessonStatus>('idle');
-  const [feedbackText, setFeedbackText] = useState<string>('Choose a mission to help Zibi.');
+  const [feedbackText, setFeedbackText] = useState<string>('');
   const [heardText, setHeardText] = useState<string>('');
   const [heardSource, setHeardSource] = useState<TranscriptionSource>('none');
   const [selectedChoiceId, setSelectedChoiceId] = useState<string | null>(null);
@@ -157,11 +157,9 @@ function App() {
     checkWhisperHealth().then(setIsServerConnected);
   }, [activeLessonId]);
 
-  useEffect(() => {
-    if (feedbackText) {
-      speakText(feedbackText);
-    }
-  }, [feedbackText]);
+  const speak = (text: string) => {
+    if (text) speakText(text);
+  };
 
   const triggerExplosion = () => {
     const colors = ['var(--yellow)', 'var(--green)', 'var(--orange)', 'var(--purple)', 'var(--blue)', 'var(--pink)'];
@@ -216,15 +214,21 @@ function App() {
 
     if (complete) {
       setLessonStatus('success');
-      setFeedbackText(isPhonicsLesson(lesson) ? `Zibi learned ${lesson.displayText}.` : 'Lesson complete.');
+      setFeedbackText('Lesson complete.');
     } else {
       setLessonStatus('idle');
       if (isPhonicsLesson(lesson)) {
-        setFeedbackText(lesson.storyPrompt);
+        const text = lesson.storyPrompt;
+        setFeedbackText(text);
+        speak(text);
       } else if (isWritingLesson(lesson)) {
-        setFeedbackText(lesson.storyPrompt);
+        const text = lesson.storyPrompt;
+        setFeedbackText(text);
+        speak(text);
       } else {
-        setFeedbackText((lesson as ChoiceLesson | SentenceLesson).prompt);
+        const text = (lesson as ChoiceLesson | SentenceLesson).prompt;
+        setFeedbackText(text);
+        speak(text);
       }
     }
   };
@@ -294,17 +298,18 @@ function App() {
     const started = await startRecording();
     if (started) {
       setLessonStatus('recording');
-      setFeedbackText('Speak now... Zibi is listening!');
+      setFeedbackText('Speak now');
     } else {
       setLessonStatus('error');
-      setFeedbackText('Could not access microphone.');
+      setFeedbackText('No microphone detected.');
+      speak('No microphone detected.');
     }
   };
 
   const handleStopRecording = async () => {
     if (!isPhonicsLesson(activeLesson)) return;
     setLessonStatus('checking');
-    setFeedbackText('Zibi is checking the translator...');
+    setFeedbackText('Checking...');
 
     stopRecognition();
 
@@ -318,7 +323,8 @@ function App() {
 
     if (!samples || samples.length === 0) {
       setLessonStatus('retry');
-      setFeedbackText("Zibi could not hear anything. Try once more.");
+      setFeedbackText("Try once more.");
+      speak(activeLesson.retryPrompt);
       playSoundEffect('fail');
       return;
     }
@@ -340,11 +346,8 @@ function App() {
     if (!transcript) {
       markLessonIncomplete(activeLesson);
       setLessonStatus('retry');
-      setFeedbackText(
-        isServerConnected
-          ? `Try saying "${activeLesson.targetText}" clearly. ${activeLesson.retryPrompt}`
-          : `Whisper lab offline. Start the local Whisper server, or try speaking clearly using browser speech recognition. ${activeLesson.retryPrompt}`,
-      );
+      setFeedbackText(activeLesson.retryPrompt);
+      speak(activeLesson.retryPrompt);
       playSoundEffect('fail');
       return;
     }
@@ -353,11 +356,10 @@ function App() {
     if (result.success) {
       markLessonComplete(activeLesson);
       setLessonStatus('success');
-      setFeedbackText(result.message);
+      setFeedbackText('Success!');
       playSoundEffect('success');
       triggerExplosion();
       if (isFirstAttempt) {
-        // Auto-advance after showing the success celebration.
         setTimeout(() => {
           if (nextLesson) {
             goToLesson(nextLesson);
@@ -370,7 +372,8 @@ function App() {
       markLessonIncomplete(activeLesson);
       setIsFirstAttempt(false);
       setLessonStatus('retry');
-      setFeedbackText(result.message);
+      setFeedbackText(activeLesson.retryPrompt);
+      speak(activeLesson.retryPrompt);
       playSoundEffect('fail');
     }
   };
@@ -384,12 +387,13 @@ function App() {
     if (choiceId === activeLesson.correctChoiceId) {
       markLessonComplete(activeLesson);
       setLessonStatus('success');
-      setFeedbackText(activeLesson.successPrompt);
+      setFeedbackText('Correct!');
       playSoundEffect('success');
       triggerExplosion();
     } else {
       setLessonStatus('retry');
       setFeedbackText(activeLesson.retryPrompt);
+      speak(activeLesson.retryPrompt);
       playSoundEffect('fail');
     }
   };
@@ -407,6 +411,7 @@ function App() {
     if (!partialIsValid) {
       setLessonStatus('retry');
       setFeedbackText(activeLesson.retryPrompt);
+      speak(activeLesson.retryPrompt);
       playSoundEffect('fail');
       window.setTimeout(() => {
         setSelectedTiles([]);
@@ -419,14 +424,14 @@ function App() {
     if (nextTiles.length === activeLesson.correctSequence.length) {
       markLessonComplete(activeLesson);
       setLessonStatus('success');
-      setFeedbackText(activeLesson.successPrompt);
+      setFeedbackText('Correct!');
       playSoundEffect('success');
       triggerExplosion();
       return;
     }
 
     setLessonStatus('idle');
-    setFeedbackText('Good start. Add the next word.');
+    setFeedbackText('Keep going.');
   };
 
   const clearSentence = () => {
@@ -440,7 +445,8 @@ function App() {
     if (!isWritingLesson(activeLesson) || lessonStatus === 'success') return;
     markLessonComplete(activeLesson);
     setLessonStatus('success');
-    setFeedbackText(activeLesson.successPrompt);
+    setFeedbackText('Correct!');
+    speak(activeLesson.successPrompt);
     playSoundEffect('success');
     triggerExplosion();
   };

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { MascotScene } from '../components/MascotScene';
 import { playSynthesizedPhonics, speakText } from '../audioUtils';
@@ -35,13 +35,6 @@ const fadeUpFast: Variants = {
 
 export function Home({ isServerConnected, onOpenApp, equippedItem }: HomeProps) {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      speakText("Just press start!");
-    }, 500);
-    return () => clearTimeout(timer);
-  }, []);
 
   const demoSounds = [
     { target: 'S', label: 'Hissy Air', desc: 'Custom noise node with bandpass sweep at 6.5kHz' },

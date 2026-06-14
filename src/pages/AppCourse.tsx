@@ -131,17 +131,6 @@ function CourseMap({
   const allLessons = REAL_COURSE_MODULES.flatMap(m => m.lessons);
   const nextRequiredLesson = allLessons.find(lesson => !completedLessons.has(lesson.id)) || null;
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (nextRequiredLesson) {
-        speakText("Press the big button to start your next mission!");
-      } else {
-        speakText("You finished all missions! Press the button to play again.");
-      }
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [nextRequiredLesson]);
-
   return (
     <motion.main className="course-layout" initial="hidden" animate="visible" variants={stagger}>
       <motion.section className="hero-panel" variants={fadeUp}>

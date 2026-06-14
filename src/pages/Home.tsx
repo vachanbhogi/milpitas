@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { MascotScene } from '../components/MascotScene';
 import { playSynthesizedPhonics, speakText } from '../audioUtils';
